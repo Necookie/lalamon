@@ -22,9 +22,13 @@ class  LoginPageState extends State <LoginPage> {
   @override
   Widget build(BuildContext context) {
     //this is where you design
+    double screenWidth = MediaQuery.of(context).size.width;// to keep the layout intact when on different devices
+  double screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
     //sum gradient design
     body: Container(
+      height: screenHeight,
+      width: screenWidth,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin:  Alignment.topLeft,
