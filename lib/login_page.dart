@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:lalamon/register_page.dart';
+import 'package:lalamon/forgotpass_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -149,7 +151,7 @@ class  LoginPageState extends State <LoginPage> {
                           ),
                           GestureDetector(
                             onTap: () {
-                              print('This button has been clicked');//redirects to the forogt password page(kaw na bahala bik)
+                              Navigator.push(context,MaterialPageRoute(builder: (context) => ForgotPassPage()),);//redirects to the forogt password page(kaw na bahala bik)
                             },
                             child: Text('Forgot Password',
                             style: TextStyle(
@@ -181,6 +183,7 @@ class  LoginPageState extends State <LoginPage> {
                             Text("Don't have an account?  "),
                             GestureDetector(
                               onTap: () {
+                                Navigator.push(context,MaterialPageRoute(builder: (context) => RegisterScreen()),);
                                 //redirects to the sign up page (kaw naren dto bik)
                               },
                               child: Text('SIGN UP',
