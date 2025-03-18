@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lalamon/register_page.dart';
 import 'package:lalamon/forgotpass_page.dart';
+import 'package:lalamon/home.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -141,7 +142,7 @@ class  LoginPageState extends State <LoginPage> {
                                 }
                                 );},
                                 side: BorderSide(color: Colors.grey),//to change the color of the border of the checkbox
-                              activeColor: Colors.grey,//to change the color of the checkbox when clicked
+                              activeColor: Colors.pink,//to change the color of the checkbox when clicked
                               checkColor: Colors.white,// color of the check inside the checkbox
                               ),
                               Text(
@@ -163,7 +164,8 @@ class  LoginPageState extends State <LoginPage> {
                       ),
                       
                       FilledButton(onPressed: () {
-                        //redirects to the main app if account created succesfully else login failed(kayo na bahala dito back end pipol <3)
+                       //temporary
+                        Navigator.push(context,MaterialPageRoute(builder: (context) => Home()),);//redirects to the main app if account created succesfully else login failed(kayo na bahala dito back end pipol <3)
                       },
                       style: FilledButton.styleFrom(
                         elevation: 5,

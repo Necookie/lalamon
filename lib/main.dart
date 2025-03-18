@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lalamon/login_page.dart';
 
+
 void main () {
   runApp(FoodEcommerce());
 }
@@ -13,7 +14,7 @@ class FoodEcommerce extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        
+        fontFamily: 'PoppinsFont',
       ),
       home: LoginPage(
 

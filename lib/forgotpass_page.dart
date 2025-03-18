@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:lalamon/forgpassverify_page.dart';
 
 class ForgotPassPage extends StatefulWidget {
+  const ForgotPassPage({super.key});
+
   @override
-  _ForgotPassPageState createState() => _ForgotPassPageState();
+  State<ForgotPassPage> createState() => _ForgotPassPageState();
 }
 
 class _ForgotPassPageState extends State<ForgotPassPage> {
