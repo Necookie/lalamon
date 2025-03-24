@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 class ForgPassVerifyPage extends StatefulWidget {
+ const ForgPassVerifyPage({super.key});
   @override
-  _ForgPassVerifyPageState createState() => _ForgPassVerifyPageState();
+  State<ForgPassVerifyPage> createState() => _ForgPassVerifyPageState();
 }
 
 class _ForgPassVerifyPageState extends State<ForgPassVerifyPage> {
