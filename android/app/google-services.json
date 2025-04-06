@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1067241701328",
+    "project_id": "lalamon-30884",
+    "storage_bucket": "lalamon-30884.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1067241701328:android:8a2bb868a8030c6cf403d5",
+        "android_client_info": {
+          "package_name": "com.example.lalamon"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDfBgUImSoQ6HtkIYMf3oWTTqj0s073s4s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
