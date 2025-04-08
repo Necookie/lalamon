@@ -1,7 +1,29 @@
+buildscript {
+    ext {
+        buildFeatures = [
+            buildConfig: true
+        ]
+        agp_version = '8.2.1'
+    }
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:$agp_version"
+        classpath 'com.google.gms:google-services:4.4.1'
+    }
+}
+
 allprojects {
     repositories {
         google()
         mavenCentral()
+    }
+    beforeEvaluate { project ->
+        project.pluginManager.withPlugin('com.android.library') {
+            project.android.buildFeatures.buildConfig = true
+        }
     }
 }
 
