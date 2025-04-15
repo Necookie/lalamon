@@ -5,6 +5,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+import 'categories.dart';
+import 'category_details_page.dart';
+
+// Main Home widget
 class Home extends StatefulWidget {
   const Home({super.key});
 
@@ -25,6 +29,7 @@ class _HomeState extends State<Home> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.pinkAccent,
+        // Sidebar menu button
         leading: Padding(
           padding: const EdgeInsets.only(bottom: 70),
           child: Builder(
@@ -41,6 +46,7 @@ class _HomeState extends State<Home> {
             },
           ),
         ),
+        // AppBar title and search bar
         title: Padding(
           padding: const EdgeInsets.only(bottom: 55),
           child: SizedBox(
@@ -57,11 +63,12 @@ class _HomeState extends State<Home> {
                   ),
                 ),
                 SizedBox(height: 20),
-                SearchBar(),
+                SearchBar(), // Search bar widget
               ],
             ),
           ),
         ),
+        // Cart button in the AppBar
         actions: [
           Padding(
             padding: const EdgeInsets.only(bottom: 58),
@@ -78,9 +85,11 @@ class _HomeState extends State<Home> {
         ],
         toolbarHeight: 120,
       ),
+      // Sidebar (Drawer)
       drawer: Drawer(
         child: Column(
           children: [
+            // User information in the DrawerHeader
             StreamBuilder<DocumentSnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('users')
@@ -92,6 +101,7 @@ class _HomeState extends State<Home> {
                   nickname = snapshot.data!.get('name') ?? 'Guest';
                 }
 
+                // Generate avatar URL based on nickname
                 final avatarUrl = 'https://api.dicebear.com/9.x/fun-emoji/svg?seed=${Uri.encodeComponent(nickname)}';
 
                 return DrawerHeader(
@@ -108,6 +118,7 @@ class _HomeState extends State<Home> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Avatar and nickname
                       Row(
                         children: [
                           Container(
@@ -167,6 +178,7 @@ class _HomeState extends State<Home> {
                         ],
                       ),
                       const Spacer(),
+                      // User role or status
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
@@ -198,6 +210,7 @@ class _HomeState extends State<Home> {
                 );
               },
             ),
+            // List of menu items in the Drawer
             Expanded(
               child: ListView(
                 padding: EdgeInsets.zero,
@@ -281,6 +294,7 @@ class _HomeState extends State<Home> {
                 ],
               ),
             ),
+            // Divider and About Us section at the bottom
             const Divider(),
             ListTile(
               leading: const Icon(Icons.info_outline, color: Colors.pink),
@@ -292,9 +306,11 @@ class _HomeState extends State<Home> {
           ],
         ),
       ),
+      // Main body content
       body: Column(
         children: [
           const SizedBox(height: 20),
+          // Categories header
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Row(
@@ -322,6 +338,7 @@ class _HomeState extends State<Home> {
             ),
           ),
           const SizedBox(height: 10),
+          // Horizontal list of categories
           Flexible(
             child: SizedBox(
               height: 200,
@@ -335,7 +352,15 @@ class _HomeState extends State<Home> {
                     imageUrl: category['imageUrl']!,
                     price: category['price']!,
                     onTap: () {
-                      // Handle onTap event for each category
+                      // Navigate to the CategoryDetailsPage
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CategoryDetailsPage(
+                            categoryTitle: category['title']!,
+                          ),
+                        ),
+                      );
                     },
                   );
                 },
@@ -343,125 +368,6 @@ class _HomeState extends State<Home> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class SearchBar extends StatefulWidget {
-  const SearchBar({super.key});
-
-  @override
-  State<SearchBar> createState() => _SearchBarState();
-}
-
-class _SearchBarState extends State<SearchBar> {
-  final TextEditingController _controller = TextEditingController();
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 40,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: TextField(
-        controller: _controller,
-        decoration: const InputDecoration(
-          hintText: 'Search for foods...',
-          border: InputBorder.none,
-          prefixIcon: Icon(Icons.search, color: Colors.grey),
-        ),
-        onChanged: (value) {
-          // Handle search input change
-        },
-      ),
-    );
-  }
-}
-
-class CategoryCard extends StatelessWidget {
-  final String title;
-  final String imageUrl;
-  final String price;
-  final VoidCallback onTap;
-
-  const CategoryCard({
-    required this.title,
-    required this.imageUrl,
-    required this.price,
-    required this.onTap,
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: InkWell(
-        onTap: onTap,
-        child: Card(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          elevation: 3,
-          child: Container(
-            width: 160,
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
-                  child: Image.asset(
-                    imageUrl,
-                    height: 90,
-                    width: 150,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const Text(
-                          'Starting',
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Text(
-                      price,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }
