@@ -14,6 +14,16 @@ class CategoryDetailsPage extends StatelessWidget {
         {'name': 'Pepperoni', 'price': '\$12', 'imageUrl': 'lib/Assets/images/pizza.jpeg'},
         {'name': 'Matthew', 'price': '\$10', 'imageUrl': 'lib/Assets/images/pizza.jpeg'},
         {'name': 'Dheyn', 'price': '\$12', 'imageUrl': 'lib/Assets/images/pizza.jpeg'},
+{'name': 'Margherita', 'price': '\$10', 'imageUrl': 'lib/Assets/images/pizza.jpeg'},
+{'name': 'Pepperoni', 'price': '\$12', 'imageUrl': 'lib/Assets/images/pizza.jpeg'},
+        {'name': 'Matthew', 'price': '\$10', 'imageUrl': 'lib/Assets/images/pizza.jpeg'},
+        {'name': 'Dheyn', 'price': '\$12', 'imageUrl': 'lib/Assets/images/pizza.jpeg'},
+        
+        {'name': 'Margherita', 'price': '\$10', 'imageUrl': 'lib/Assets/images/pizza.jpeg'},
+        {'name': 'Pepperoni', 'price': '\$12', 'imageUrl': 'lib/Assets/images/pizza.jpeg'},
+        {'name': 'Matthew', 'price': '\$10', 'imageUrl': 'lib/Assets/images/pizza.jpeg'},
+        {'name': 'Dheyn', 'price': '\$12', 'imageUrl': 'lib/Assets/images/pizza.jpeg'},
+        
         {'name': 'Margherita', 'price': '\$10', 'imageUrl': 'lib/Assets/images/pizza.jpeg'},
         {'name': 'Pepperoni', 'price': '\$12', 'imageUrl': 'lib/Assets/images/pizza.jpeg'},
         {'name': 'Matthew', 'price': '\$10', 'imageUrl': 'lib/Assets/images/pizza.jpeg'},
@@ -29,6 +39,13 @@ class CategoryDetailsPage extends StatelessWidget {
     // Get the items for the selected category
     final items = categoryItems[categoryTitle] ?? [];
 
+    // Get screen width
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    // Calculate card width and height dynamically
+    final cardWidth = (screenWidth - 30) / 2; // Subtract padding and divide by 2 for two columns
+    final cardHeight = cardWidth * 1.2; // Adjust height based on width (aspect ratio)
+
     return Scaffold(
       appBar: AppBar(
         title: Text(categoryTitle),
@@ -37,11 +54,11 @@ class CategoryDetailsPage extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2, // Number of columns in the grid
             crossAxisSpacing: 10, // Spacing between columns
             mainAxisSpacing: 10, // Spacing between rows
-            childAspectRatio: 1, // Make the cards square
+            childAspectRatio: cardWidth / cardHeight, // Dynamic aspect ratio
           ),
           itemCount: items.length,
           itemBuilder: (context, index) {
@@ -73,9 +90,9 @@ class CategoryDetailsPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(15),
                         child: Image.asset(
                           item['imageUrl']!,
-                          height: 130,
-                          width: 180,
-                          fit: BoxFit.fill,
+                          height: cardHeight * 0.6, // Adjust image height relative to card height
+                          width: cardWidth, // Adjust image width relative to card width
+                          fit: BoxFit.cover,
                         ),
                       ),
                       const SizedBox(height: 10),
