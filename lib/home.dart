@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+import 'all_categories_page.dart';
 import 'categories.dart';
 import 'category_details_page.dart';
 
@@ -19,8 +20,11 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   // Mock data for categories
   final List<Map<String, String>> categories = [
-    {'title': 'Pizza', 'imageUrl': 'lib/Assets/images/pizza.jpeg', 'price': '\$70'},
-    {'title': 'Burger', 'imageUrl': 'lib/Assets/images/burger.jpeg', 'price': '\$50'},
+    {'title': 'Pizza', 'imageUrl': 'lib/Assets/images/pizza.jpeg', 'price': '₱150'}, 
+    {'title': 'Burger', 'imageUrl': 'lib/Assets/images/burger.jpeg', 'price': '₱80'}, 
+    {'title': 'Chicken', 'imageUrl': 'lib/Assets/images/Fried_Chicken.jpg', 'price': '₱180'}, 
+    {'title': 'Spaghetti', 'imageUrl': 'lib/Assets/images/Spaghetti.jpg', 'price': '₱150'}, 
+    {'title': 'Drinks', 'imageUrl': 'lib/Assets/images/General_Softdrinks.jpg', 'price': '₱25'},
   ];
 
   @override
@@ -325,7 +329,13 @@ class _HomeState extends State<Home> {
                 ),
                 TextButton(
                   onPressed: () {
-                    // Handle "See All" button press
+                    // Navigate to the AllCategoriesPage
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AllCategoriesPage(categories: categories),
+                      ),
+                    );
                   },
                   child: const Text(
                     'See All',
