@@ -27,13 +27,39 @@ class _HomeState extends State<Home> {
     {'title': 'Drinks', 'imageUrl': 'lib/Assets/images/General_Softdrinks.jpg', 'price': '₱25'},
   ];
 
+  // Controller for the search text input
+  TextEditingController searchController = TextEditingController();
+  
+  // List of categories filtered by search query
+  List<Map<String, String>> filteredCategories = [];
+
+  // Function to handle search input
+  void _onSearchChanged(String query) {
+    setState(() {
+      // If the search query is empty, show all categories
+      if (query.isEmpty) {
+        filteredCategories = categories;
+      } else {
+        filteredCategories = categories.where((category) {
+          return category['title']!.toLowerCase().contains(query.toLowerCase());
+        }).toList();
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Initially show all categories
+    filteredCategories = categories;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.pinkAccent,
-        // Sidebar menu button
         leading: Padding(
           padding: const EdgeInsets.only(bottom: 70),
           child: Builder(
@@ -50,29 +76,44 @@ class _HomeState extends State<Home> {
             },
           ),
         ),
-        // AppBar title and search bar
         title: Padding(
           padding: const EdgeInsets.only(bottom: 55),
           child: SizedBox(
             width: double.infinity,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                SizedBox(height: 50),
-                Text(
+              children: [
+                const SizedBox(height: 50),
+                const Text(
                   'Home',
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 20),
-                SearchBar(), // Search bar widget
+                const SizedBox(height: 20),
+                // Search bar widget
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: TextField(
+                    controller: searchController,
+                    onChanged: _onSearchChanged,
+                    decoration: InputDecoration(
+                      hintText: "Search...",
+                      filled: true,
+                      fillColor: Colors.white,
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30.0),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
         ),
-        // Cart button in the AppBar
         actions: [
           Padding(
             padding: const EdgeInsets.only(bottom: 58),
@@ -89,7 +130,6 @@ class _HomeState extends State<Home> {
         ],
         toolbarHeight: 120,
       ),
-      // Sidebar (Drawer)
       drawer: Drawer(
         child: Column(
           children: [
@@ -105,7 +145,6 @@ class _HomeState extends State<Home> {
                   nickname = snapshot.data!.get('name') ?? 'Guest';
                 }
 
-                // Generate avatar URL based on nickname
                 final avatarUrl = 'https://api.dicebear.com/9.x/fun-emoji/svg?seed=${Uri.encodeComponent(nickname)}';
 
                 return DrawerHeader(
@@ -122,7 +161,6 @@ class _HomeState extends State<Home> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Avatar and nickname
                       Row(
                         children: [
                           Container(
@@ -155,7 +193,6 @@ class _HomeState extends State<Home> {
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 const Text(
                                   'Welcome back,',
@@ -182,7 +219,6 @@ class _HomeState extends State<Home> {
                         ],
                       ),
                       const Spacer(),
-                      // User role or status
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
@@ -190,7 +226,6 @@ class _HomeState extends State<Home> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
-                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
                               Icons.restaurant_menu,
@@ -214,7 +249,6 @@ class _HomeState extends State<Home> {
                 );
               },
             ),
-            // List of menu items in the Drawer
             Expanded(
               child: ListView(
                 padding: EdgeInsets.zero,
@@ -298,7 +332,6 @@ class _HomeState extends State<Home> {
                 ],
               ),
             ),
-            // Divider and About Us section at the bottom
             const Divider(),
             ListTile(
               leading: const Icon(Icons.info_outline, color: Colors.pink),
@@ -310,7 +343,6 @@ class _HomeState extends State<Home> {
           ],
         ),
       ),
-      // Main body content
       body: Column(
         children: [
           const SizedBox(height: 20),
@@ -329,7 +361,6 @@ class _HomeState extends State<Home> {
                 ),
                 TextButton(
                   onPressed: () {
-                    // Navigate to the AllCategoriesPage
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -354,15 +385,14 @@ class _HomeState extends State<Home> {
               height: 200,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                itemCount: categories.length,
+                itemCount: filteredCategories.length,
                 itemBuilder: (context, index) {
-                  final category = categories[index];
+                  final category = filteredCategories[index];
                   return CategoryCard(
                     title: category['title']!,
                     imageUrl: category['imageUrl']!,
                     price: category['price']!,
                     onTap: () {
-                      // Navigate to the CategoryDetailsPage
                       Navigator.push(
                         context,
                         MaterialPageRoute(
