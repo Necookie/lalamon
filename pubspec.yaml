@@ -37,6 +37,7 @@ dependencies:
   firebase_core: ^2.15.1
   firebase_auth: ^4.9.0
   cloud_firestore: ^4.8.5
+  supabase_flutter: ^2.8.4
   http: ^1.1.0
   cached_network_image: ^3.3.0
 
@@ -60,6 +61,33 @@ flutter:
  assets:
   - lib/Assets/images/pizza.jpeg
   - lib/Assets/images/burger.jpeg
+  - lib/Assets/images/Fried_Chicken.jpg
+  - lib/Assets/images/BBQ_Chicken.jpg
+  - lib/Assets/images/Roast_Chicken.jpg
+  - lib/Assets/images/Chicken_Parmesan.jpg
+  - lib/Assets/images/Chicken_Alfredo.jpg
+  - lib/Assets/images/Spaghetti.jpg
+  - lib/Assets/images/Linguine.jpg
+  - lib/Assets/images/Lasagne_alla_Bolognese.jpg
+  - lib/Assets/images/Coca_Cola.jpg
+  - lib/Assets/images/Dr_Pepper.jpeg
+  - lib/Assets/images/Fanta.jpg
+  - lib/Assets/images/Mountain_Dew.jpg
+  - lib/Assets/images/Pepsi.jpg
+  - lib/Assets/images/General_Softdrinks.jpg
+  - lib/Assets/images/Sprite.jpg
+  - lib/Assets/images/Chicago_Deep_Dish_Pizza.jpg
+  - lib/Assets/images/Margherita_Pizza.jpeg
+  - lib/Assets/images/Neapolitan_Pizza.jpg
+  - lib/Assets/images/New_York_Style_Pizza.jpg
+  - lib/Assets/images/Pizza_al_taglio.jpg
+  - lib/Assets/images/Hatch_Chile_Smash_Burgers.jpg
+  - lib/Assets/images/Hellfire_Chicken_Burger.png
+  - lib/Assets/images/Hells_Kitchen_Burger.jpg
+  - lib/Assets/images/Jalapeno-Onion_Smash_Burger.jpg
+  - lib/Assets/images/Japanese-Style_Chili_Burgers_with_Yuzu_Mayo.jpg
+  - lib/Assets/images/Juicy_Lucy.jpg  
+  - lib/Assets/images/Cheese_Burger.jpg
 fonts:
   - family: PoppinsFont
     fonts:
