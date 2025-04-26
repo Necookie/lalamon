@@ -37,6 +37,7 @@ dependencies:
   firebase_core: ^2.15.1
   firebase_auth: ^4.9.0
   cloud_firestore: ^4.8.5
+  supabase_flutter: ^2.8.4
   http: ^1.1.0
   cached_network_image: ^3.3.0
 
