@@ -18,7 +18,7 @@ class _ProfilePageState extends State<ProfilePage> {
   final _formKey = GlobalKey<FormState>();
   bool _isEditing = false;
   bool _isLoading = false;
-  bool _isChangingPassword = false;
+  final bool _isChangingPassword = false;
 
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
