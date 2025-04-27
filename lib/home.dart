@@ -58,7 +58,7 @@ class _HomeState extends State<Home> {
             builder: (context) {
               return IconButton(
                 onPressed: () {
-                  Scaffold.of(context).openDrawer(); // Open sidebar
+                  Scaffold.of(context).openDrawer();
                 },
                 icon: const Icon(
                   Icons.menu,
@@ -110,7 +110,7 @@ class _HomeState extends State<Home> {
             padding: const EdgeInsets.only(bottom: 58),
             child: IconButton(
               onPressed: () {
-                // Function to show the cart page
+                // Cart page action
               },
               icon: const Icon(
                 Icons.card_travel_rounded,
@@ -132,12 +132,13 @@ class _HomeState extends State<Home> {
               builder: (context, snapshot) {
                 String nickname = 'Guest';
                 String avatarUrl = '';
+
                 if (snapshot.hasData && snapshot.data!.exists) {
-                  nickname = snapshot.data!.get('name') ?? 'Guest';
-                  avatarUrl = snapshot.data!.get('avatar_url') ?? '';
+                  final data = snapshot.data!.data() as Map<String, dynamic>;
+                  nickname = data['name'] ?? 'Guest';
+                  avatarUrl = data.containsKey('avatar_url') ? (data['avatar_url'] ?? '') : '';
                 }
 
-                // Default avatar URL if no avatar_url is found
                 if (avatarUrl.isEmpty) {
                   avatarUrl = 'https://api.dicebear.com/9.x/fun-emoji/svg?seed=${Uri.encodeComponent(nickname)}';
                 }
@@ -179,7 +180,7 @@ class _HomeState extends State<Home> {
                             child: ClipOval(
                               child: CachedNetworkImage(
                                 imageUrl: avatarUrl,
-                                fit: BoxFit.cover, // Ensures the image covers the circle without distortion
+                                fit: BoxFit.cover,
                                 placeholder: (context, url) => const CircularProgressIndicator(),
                                 errorWidget: (context, url, error) => const Icon(Icons.error),
                               ),
