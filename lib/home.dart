@@ -9,7 +9,6 @@ import 'all_categories_page.dart';
 import 'categories.dart';
 import 'category_details_page.dart';
 
-// Main Home widget
 class Home extends StatefulWidget {
   const Home({super.key});
 
@@ -18,25 +17,19 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  // Mock data for categories
   final List<Map<String, String>> categories = [
-    {'title': 'Pizza', 'imageUrl': 'lib/Assets/images/pizza.jpeg', 'price': '₱150'}, 
-    {'title': 'Burger', 'imageUrl': 'lib/Assets/images/burger.jpeg', 'price': '₱80'}, 
-    {'title': 'Chicken', 'imageUrl': 'lib/Assets/images/Fried_Chicken.jpg', 'price': '₱180'}, 
-    {'title': 'Spaghetti', 'imageUrl': 'lib/Assets/images/Spaghetti.jpg', 'price': '₱150'}, 
+    {'title': 'Pizza', 'imageUrl': 'lib/Assets/images/pizza.jpeg', 'price': '₱150'},
+    {'title': 'Burger', 'imageUrl': 'lib/Assets/images/burger.jpeg', 'price': '₱80'},
+    {'title': 'Chicken', 'imageUrl': 'lib/Assets/images/Fried_Chicken.jpg', 'price': '₱180'},
+    {'title': 'Spaghetti', 'imageUrl': 'lib/Assets/images/Spaghetti.jpg', 'price': '₱150'},
     {'title': 'Drinks', 'imageUrl': 'lib/Assets/images/General_Softdrinks.jpg', 'price': '₱25'},
   ];
 
-  // Controller for the search text input
   TextEditingController searchController = TextEditingController();
-  
-  // List of categories filtered by search query
   List<Map<String, String>> filteredCategories = [];
 
-  // Function to handle search input
   void _onSearchChanged(String query) {
     setState(() {
-      // If the search query is empty, show all categories
       if (query.isEmpty) {
         filteredCategories = categories;
       } else {
@@ -50,7 +43,6 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-    // Initially show all categories
     filteredCategories = categories;
   }
 
@@ -92,7 +84,6 @@ class _HomeState extends State<Home> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                // Search bar widget
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
                   child: TextField(
@@ -126,14 +117,13 @@ class _HomeState extends State<Home> {
                 color: Colors.white,
               ),
             ),
-          )
+          ),
         ],
         toolbarHeight: 120,
       ),
       drawer: Drawer(
         child: Column(
           children: [
-            // User information in the DrawerHeader
             StreamBuilder<DocumentSnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('users')
@@ -141,11 +131,16 @@ class _HomeState extends State<Home> {
                   .snapshots(),
               builder: (context, snapshot) {
                 String nickname = 'Guest';
+                String avatarUrl = '';
                 if (snapshot.hasData && snapshot.data!.exists) {
                   nickname = snapshot.data!.get('name') ?? 'Guest';
+                  avatarUrl = snapshot.data!.get('avatar_url') ?? '';
                 }
 
-                final avatarUrl = 'https://api.dicebear.com/9.x/fun-emoji/svg?seed=${Uri.encodeComponent(nickname)}';
+                // Default avatar URL if no avatar_url is found
+                if (avatarUrl.isEmpty) {
+                  avatarUrl = 'https://api.dicebear.com/9.x/fun-emoji/svg?seed=${Uri.encodeComponent(nickname)}';
+                }
 
                 return DrawerHeader(
                   decoration: BoxDecoration(
@@ -184,6 +179,7 @@ class _HomeState extends State<Home> {
                             child: ClipOval(
                               child: CachedNetworkImage(
                                 imageUrl: avatarUrl,
+                                fit: BoxFit.cover, // Ensures the image covers the circle without distortion
                                 placeholder: (context, url) => const CircularProgressIndicator(),
                                 errorWidget: (context, url, error) => const Icon(Icons.error),
                               ),
@@ -256,16 +252,12 @@ class _HomeState extends State<Home> {
                   ListTile(
                     leading: const Icon(Icons.home_outlined, color: Colors.pink),
                     title: const Text('Home'),
-                    onTap: () {
-                      // Handle Home tap
-                    },
+                    onTap: () {},
                   ),
                   ListTile(
                     leading: const Icon(Icons.shopping_cart_outlined, color: Colors.pink),
                     title: const Text('Orders & reordering'),
-                    onTap: () {
-                      // Handle Orders & reordering tap
-                    },
+                    onTap: () {},
                   ),
                   ListTile(
                     leading: const Icon(Icons.person_2_outlined, color: Colors.pink),
@@ -280,30 +272,22 @@ class _HomeState extends State<Home> {
                   ListTile(
                     leading: const Icon(Icons.location_on_outlined, color: Colors.pink),
                     title: const Text('Addresses'),
-                    onTap: () {
-                      // Handle Addresses tap
-                    },
+                    onTap: () {},
                   ),
                   ListTile(
                     leading: const Icon(Icons.payment, color: Colors.pink),
                     title: const Text('Payment Methods'),
-                    onTap: () {
-                      // Handle Payment Methods tap
-                    },
+                    onTap: () {},
                   ),
                   ListTile(
                     leading: const Icon(Icons.help_center_outlined, color: Colors.pink),
                     title: const Text('Help Center'),
-                    onTap: () {
-                      // Handle Help Center tap
-                    },
+                    onTap: () {},
                   ),
                   ListTile(
                     leading: const Icon(Icons.settings_outlined, color: Colors.pink),
                     title: const Text('Settings'),
-                    onTap: () {
-                      // Handle Settings tap
-                    },
+                    onTap: () {},
                   ),
                   ListTile(
                     leading: const Icon(Icons.logout, color: Colors.pink),
@@ -336,9 +320,7 @@ class _HomeState extends State<Home> {
             ListTile(
               leading: const Icon(Icons.info_outline, color: Colors.pink),
               title: const Text('About Us'),
-              onTap: () {
-                // Handle About Us tap
-              },
+              onTap: () {},
             ),
           ],
         ),
@@ -346,7 +328,6 @@ class _HomeState extends State<Home> {
       body: Column(
         children: [
           const SizedBox(height: 20),
-          // Categories header
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Row(
@@ -379,7 +360,6 @@ class _HomeState extends State<Home> {
             ),
           ),
           const SizedBox(height: 10),
-          // Horizontal list of categories
           Flexible(
             child: SizedBox(
               height: 200,
