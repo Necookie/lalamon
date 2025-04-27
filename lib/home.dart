@@ -8,6 +8,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'all_categories_page.dart';
 import 'categories.dart';
 import 'category_details_page.dart';
+import 'cart.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -110,7 +111,11 @@ class _HomeState extends State<Home> {
             padding: const EdgeInsets.only(bottom: 58),
             child: IconButton(
               onPressed: () {
-                // Cart page action
+                // Navigate to the CartPage
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const CartPage()),
+                );
               },
               icon: const Icon(
                 Icons.card_travel_rounded,
@@ -327,8 +332,51 @@ class _HomeState extends State<Home> {
         ),
       ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 20),
+
+          // Recommended Items Section
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: const Text(
+              'Recommended Items',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Flexible(
+            child: SizedBox(
+              height: 200,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: 5, // Placeholder count
+                itemBuilder: (context, index) {
+                  return Container(
+                    width: 150,
+                    margin: const EdgeInsets.only(right: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'Recommended Item',
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Categories Section
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Row(
@@ -383,6 +431,46 @@ class _HomeState extends State<Home> {
                         ),
                       );
                     },
+                  );
+                },
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Popular Items Section
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: const Text(
+              'Popular Items',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Flexible(
+            child: SizedBox(
+              height: 200,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: 5, // Placeholder count
+                itemBuilder: (context, index) {
+                  return Container(
+                    width: 150,
+                    margin: const EdgeInsets.only(right: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'Popular Item',
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ),
                   );
                 },
               ),
