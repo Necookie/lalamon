@@ -8,8 +8,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'all_categories_page.dart';
 import 'categories.dart';
 import 'category_details_page.dart';
+import 'cart.dart';
 
-// Main Home widget
 class Home extends StatefulWidget {
   const Home({super.key});
 
@@ -18,14 +18,34 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  // Mock data for categories
   final List<Map<String, String>> categories = [
-    {'title': 'Pizza', 'imageUrl': 'lib/Assets/images/pizza.jpeg', 'price': '₱150'}, 
-    {'title': 'Burger', 'imageUrl': 'lib/Assets/images/burger.jpeg', 'price': '₱80'}, 
-    {'title': 'Chicken', 'imageUrl': 'lib/Assets/images/Fried_Chicken.jpg', 'price': '₱180'}, 
-    {'title': 'Spaghetti', 'imageUrl': 'lib/Assets/images/Spaghetti.jpg', 'price': '₱150'}, 
+    {'title': 'Pizza', 'imageUrl': 'lib/Assets/images/pizza.jpeg', 'price': '₱150'},
+    {'title': 'Burger', 'imageUrl': 'lib/Assets/images/burger.jpeg', 'price': '₱80'},
+    {'title': 'Chicken', 'imageUrl': 'lib/Assets/images/Fried_Chicken.jpg', 'price': '₱180'},
+    {'title': 'Spaghetti', 'imageUrl': 'lib/Assets/images/Spaghetti.jpg', 'price': '₱150'},
     {'title': 'Drinks', 'imageUrl': 'lib/Assets/images/General_Softdrinks.jpg', 'price': '₱25'},
   ];
+
+  TextEditingController searchController = TextEditingController();
+  List<Map<String, String>> filteredCategories = [];
+
+  void _onSearchChanged(String query) {
+    setState(() {
+      if (query.isEmpty) {
+        filteredCategories = categories;
+      } else {
+        filteredCategories = categories.where((category) {
+          return category['title']!.toLowerCase().contains(query.toLowerCase());
+        }).toList();
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    filteredCategories = categories;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,14 +53,13 @@ class _HomeState extends State<Home> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.pinkAccent,
-        // Sidebar menu button
         leading: Padding(
           padding: const EdgeInsets.only(bottom: 70),
           child: Builder(
             builder: (context) {
               return IconButton(
                 onPressed: () {
-                  Scaffold.of(context).openDrawer(); // Open sidebar
+                  Scaffold.of(context).openDrawer();
                 },
                 icon: const Icon(
                   Icons.menu,
@@ -50,50 +69,66 @@ class _HomeState extends State<Home> {
             },
           ),
         ),
-        // AppBar title and search bar
         title: Padding(
           padding: const EdgeInsets.only(bottom: 55),
           child: SizedBox(
             width: double.infinity,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                SizedBox(height: 50),
-                Text(
+              children: [
+                const SizedBox(height: 50),
+                const Text(
                   'Home',
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 20),
-                SearchBar(), // Search bar widget
+                const SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: TextField(
+                    controller: searchController,
+                    onChanged: _onSearchChanged,
+                    decoration: InputDecoration(
+                      hintText: "Search...",
+                      filled: true,
+                      fillColor: Colors.white,
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30.0),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
         ),
-        // Cart button in the AppBar
         actions: [
           Padding(
             padding: const EdgeInsets.only(bottom: 58),
             child: IconButton(
               onPressed: () {
-                // Function to show the cart page
+                // Navigate to the CartPage
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const CartPage()),
+                );
               },
               icon: const Icon(
                 Icons.card_travel_rounded,
                 color: Colors.white,
               ),
             ),
-          )
+          ),
         ],
         toolbarHeight: 120,
       ),
-      // Sidebar (Drawer)
       drawer: Drawer(
         child: Column(
           children: [
-            // User information in the DrawerHeader
             StreamBuilder<DocumentSnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('users')
@@ -101,12 +136,17 @@ class _HomeState extends State<Home> {
                   .snapshots(),
               builder: (context, snapshot) {
                 String nickname = 'Guest';
+                String avatarUrl = '';
+
                 if (snapshot.hasData && snapshot.data!.exists) {
-                  nickname = snapshot.data!.get('name') ?? 'Guest';
+                  final data = snapshot.data!.data() as Map<String, dynamic>;
+                  nickname = data['name'] ?? 'Guest';
+                  avatarUrl = data.containsKey('avatar_url') ? (data['avatar_url'] ?? '') : '';
                 }
 
-                // Generate avatar URL based on nickname
-                final avatarUrl = 'https://api.dicebear.com/9.x/fun-emoji/svg?seed=${Uri.encodeComponent(nickname)}';
+                if (avatarUrl.isEmpty) {
+                  avatarUrl = 'https://api.dicebear.com/9.x/fun-emoji/svg?seed=${Uri.encodeComponent(nickname)}';
+                }
 
                 return DrawerHeader(
                   decoration: BoxDecoration(
@@ -122,7 +162,6 @@ class _HomeState extends State<Home> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Avatar and nickname
                       Row(
                         children: [
                           Container(
@@ -146,6 +185,7 @@ class _HomeState extends State<Home> {
                             child: ClipOval(
                               child: CachedNetworkImage(
                                 imageUrl: avatarUrl,
+                                fit: BoxFit.cover,
                                 placeholder: (context, url) => const CircularProgressIndicator(),
                                 errorWidget: (context, url, error) => const Icon(Icons.error),
                               ),
@@ -155,7 +195,6 @@ class _HomeState extends State<Home> {
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 const Text(
                                   'Welcome back,',
@@ -182,7 +221,6 @@ class _HomeState extends State<Home> {
                         ],
                       ),
                       const Spacer(),
-                      // User role or status
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
@@ -190,7 +228,6 @@ class _HomeState extends State<Home> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
-                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
                               Icons.restaurant_menu,
@@ -214,7 +251,6 @@ class _HomeState extends State<Home> {
                 );
               },
             ),
-            // List of menu items in the Drawer
             Expanded(
               child: ListView(
                 padding: EdgeInsets.zero,
@@ -222,16 +258,12 @@ class _HomeState extends State<Home> {
                   ListTile(
                     leading: const Icon(Icons.home_outlined, color: Colors.pink),
                     title: const Text('Home'),
-                    onTap: () {
-                      // Handle Home tap
-                    },
+                    onTap: () {},
                   ),
                   ListTile(
                     leading: const Icon(Icons.shopping_cart_outlined, color: Colors.pink),
                     title: const Text('Orders & reordering'),
-                    onTap: () {
-                      // Handle Orders & reordering tap
-                    },
+                    onTap: () {},
                   ),
                   ListTile(
                     leading: const Icon(Icons.person_2_outlined, color: Colors.pink),
@@ -246,30 +278,22 @@ class _HomeState extends State<Home> {
                   ListTile(
                     leading: const Icon(Icons.location_on_outlined, color: Colors.pink),
                     title: const Text('Addresses'),
-                    onTap: () {
-                      // Handle Addresses tap
-                    },
+                    onTap: () {},
                   ),
                   ListTile(
                     leading: const Icon(Icons.payment, color: Colors.pink),
                     title: const Text('Payment Methods'),
-                    onTap: () {
-                      // Handle Payment Methods tap
-                    },
+                    onTap: () {},
                   ),
                   ListTile(
                     leading: const Icon(Icons.help_center_outlined, color: Colors.pink),
                     title: const Text('Help Center'),
-                    onTap: () {
-                      // Handle Help Center tap
-                    },
+                    onTap: () {},
                   ),
                   ListTile(
                     leading: const Icon(Icons.settings_outlined, color: Colors.pink),
                     title: const Text('Settings'),
-                    onTap: () {
-                      // Handle Settings tap
-                    },
+                    onTap: () {},
                   ),
                   ListTile(
                     leading: const Icon(Icons.logout, color: Colors.pink),
@@ -298,23 +322,61 @@ class _HomeState extends State<Home> {
                 ],
               ),
             ),
-            // Divider and About Us section at the bottom
             const Divider(),
             ListTile(
               leading: const Icon(Icons.info_outline, color: Colors.pink),
               title: const Text('About Us'),
-              onTap: () {
-                // Handle About Us tap
-              },
+              onTap: () {},
             ),
           ],
         ),
       ),
-      // Main body content
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 20),
-          // Categories header
+
+          // Recommended Items Section
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: const Text(
+              'Recommended Items',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Flexible(
+            child: SizedBox(
+              height: 200,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: 5, // Placeholder count
+                itemBuilder: (context, index) {
+                  return Container(
+                    width: 150,
+                    margin: const EdgeInsets.only(right: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'Recommended Item',
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Categories Section
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Row(
@@ -329,7 +391,6 @@ class _HomeState extends State<Home> {
                 ),
                 TextButton(
                   onPressed: () {
-                    // Navigate to the AllCategoriesPage
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -348,21 +409,19 @@ class _HomeState extends State<Home> {
             ),
           ),
           const SizedBox(height: 10),
-          // Horizontal list of categories
           Flexible(
             child: SizedBox(
               height: 200,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                itemCount: categories.length,
+                itemCount: filteredCategories.length,
                 itemBuilder: (context, index) {
-                  final category = categories[index];
+                  final category = filteredCategories[index];
                   return CategoryCard(
                     title: category['title']!,
                     imageUrl: category['imageUrl']!,
                     price: category['price']!,
                     onTap: () {
-                      // Navigate to the CategoryDetailsPage
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -372,6 +431,46 @@ class _HomeState extends State<Home> {
                         ),
                       );
                     },
+                  );
+                },
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Popular Items Section
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: const Text(
+              'Popular Items',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Flexible(
+            child: SizedBox(
+              height: 200,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: 5, // Placeholder count
+                itemBuilder: (context, index) {
+                  return Container(
+                    width: 150,
+                    margin: const EdgeInsets.only(right: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'Popular Item',
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ),
                   );
                 },
               ),

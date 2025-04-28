@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'error_messages.dart';
 import 'login_page.dart';
 
@@ -16,18 +18,21 @@ class _ProfilePageState extends State<ProfilePage> {
   final _formKey = GlobalKey<FormState>();
   bool _isEditing = false;
   bool _isLoading = false;
-  bool _isChangingPassword = false;
-  
+  final bool _isChangingPassword = false;
+
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
   final _confirmNewPasswordController = TextEditingController();
 
+  String? _avatarUrl;
+
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    _loadAvatarUrl();
   }
 
   @override
@@ -40,6 +45,7 @@ class _ProfilePageState extends State<ProfilePage> {
     super.dispose();
   }
 
+  // Load user data from Firebase
   Future<void> _loadUserData() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -57,13 +63,36 @@ class _ProfilePageState extends State<ProfilePage> {
         }
       } catch (e) {
         if (mounted) {
-          _showErrorSnackBar(context, ErrorMessages.getProfileLoadError(e));
+          _showErrorSnackBar(ErrorMessages.getProfileLoadError(e));
         }
       }
     }
   }
 
-  void _showSuccessSnackBar(BuildContext context, String message) {
+  // Load avatar URL from Firebase Firestore for the logged-in user
+  Future<void> _loadAvatarUrl() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        if (userDoc.exists) {
+          setState(() {
+            _avatarUrl = userDoc.data()?['avatar_url'] ?? ''; // Retrieve avatar URL from Firestore
+          });
+        }
+      } catch (e) {
+        if (mounted) {
+          _showErrorSnackBar('Error loading avatar: $e');
+        }
+      }
+    }
+  }
+
+  // Show success snackbar
+  void _showSuccessSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -71,10 +100,7 @@ class _ProfilePageState extends State<ProfilePage> {
             const Icon(Icons.check_circle, color: Colors.white),
             const SizedBox(width: 12),
             Expanded(
-              child: Text(
-                message,
-                style: const TextStyle(color: Colors.white),
-              ),
+              child: Text(message, style: const TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -89,7 +115,8 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  void _showErrorSnackBar(BuildContext context, String message) {
+  // Show error snackbar
+  void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -97,10 +124,7 @@ class _ProfilePageState extends State<ProfilePage> {
             const Icon(Icons.error_outline, color: Colors.white),
             const SizedBox(width: 12),
             Expanded(
-              child: Text(
-                message,
-                style: const TextStyle(color: Colors.white),
-              ),
+              child: Text(message, style: const TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -115,14 +139,13 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  // Update profile data in Firestore
   Future<void> _updateProfile() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -135,7 +158,7 @@ class _ProfilePageState extends State<ProfilePage> {
         }, SetOptions(merge: true));
 
         if (mounted) {
-          _showSuccessSnackBar(context, 'Profile updated successfully!');
+          _showSuccessSnackBar('Profile updated successfully!');
           setState(() {
             _isEditing = false;
           });
@@ -143,7 +166,7 @@ class _ProfilePageState extends State<ProfilePage> {
       }
     } catch (e) {
       if (mounted) {
-        _showErrorSnackBar(context, ErrorMessages.getProfileUpdateError(e));
+        _showErrorSnackBar(ErrorMessages.getProfileUpdateError(e));
       }
     } finally {
       if (mounted) {
@@ -154,76 +177,62 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Future<void> _changePassword() async {
-    if (_newPasswordController.text != _confirmNewPasswordController.text) {
-      _showErrorSnackBar(context, 'New passwords do not match');
-      return;
-    }
+  // Upload profile image to Supabase Storage and update URL in Firestore
+  Future<void> _pickAndUploadImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
-    setState(() {
-      _isLoading = true;
-    });
+    if (pickedFile != null) {
+      setState(() => _isLoading = true);
 
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        // Reauthenticate user before changing password
-        final credential = EmailAuthProvider.credential(
-          email: user.email!,
-          password: _currentPasswordController.text,
+      try {
+        final firebaseUser = FirebaseAuth.instance.currentUser;
+        if (firebaseUser == null) {
+          _showErrorSnackBar('Firebase user is not authenticated');
+          return;
+        }
+
+        final fileBytes = await pickedFile.readAsBytes();
+        final fileName = '${firebaseUser.uid}/${DateTime.now().millisecondsSinceEpoch}_${pickedFile.name}';
+        final supabaseStorage = Supabase.instance.client.storage.from('profile-pictures');
+
+        // Upload image to Supabase Storage
+        final response = await supabaseStorage.uploadBinary(
+          fileName,
+          fileBytes,
+          fileOptions: const FileOptions(upsert: true),
         );
 
-        await user.reauthenticateWithCredential(credential);
-        await user.updatePassword(_newPasswordController.text);
+        // Get the public URL of the uploaded image
+        final imageUrl = supabaseStorage.getPublicUrl(fileName);
+
+        // Store the Supabase URL in Firestore under the user's profile
+        await FirebaseFirestore.instance.collection('users').doc(firebaseUser.uid).update({
+          'avatar_url': imageUrl, // Save Supabase URL in Firebase Firestore
+        });
 
         if (mounted) {
-          _showSuccessSnackBar(context, 'Password changed successfully!');
           setState(() {
-            _isChangingPassword = false;
-            _currentPasswordController.clear();
-            _newPasswordController.clear();
-            _confirmNewPasswordController.clear();
+            _avatarUrl = imageUrl; // Update the avatar URL in the widget state
+          });
+          _showSuccessSnackBar('Profile picture updated successfully!');
+        }
+      } catch (e) {
+        if (mounted) {
+          _showErrorSnackBar('Error uploading image: $e');
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
           });
         }
-      }
-    } on FirebaseAuthException catch (e) {
-      if (mounted) {
-        _showErrorSnackBar(context, ErrorMessages.getPasswordChangeError(e));
-      }
-    } catch (e) {
-      if (mounted) {
-        _showErrorSnackBar(context, ErrorMessages.getPasswordChangeError(e));
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _signOut() async {
-    try {
-      await FirebaseAuth.instance.signOut();
-      if (mounted) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const LoginPage()),
-          (route) => false,
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        _showErrorSnackBar(context, ErrorMessages.getSignOutError(e));
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile', style: TextStyle(color: Colors.white)),
@@ -250,222 +259,100 @@ class _ProfilePageState extends State<ProfilePage> {
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 20),
-                StreamBuilder<DocumentSnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('users')
-                      .doc(user?.uid)
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    String nickname = _nameController.text;
-                    if (snapshot.hasData && snapshot.data!.exists) {
-                      nickname = snapshot.data!.get('name') ?? nickname;
-                    }
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Center the profile picture
+              CircleAvatar(
+                radius: 50,
+                backgroundImage: _avatarUrl != null
+                    ? CachedNetworkImageProvider(_avatarUrl!)
+                    : const AssetImage('assets/default_avatar.jpg') as ImageProvider,
+              ),
+              IconButton(
+                onPressed: _isLoading ? null : _pickAndUploadImage,
+                icon: const Icon(Icons.camera_alt),
+                color: Colors.pinkAccent,
+              ),
+              const SizedBox(height: 20),
 
-                    final avatarUrl = 'https://api.dicebear.com/9.x/fun-emoji/svg?seed=${Uri.encodeComponent(nickname)}';
-
-                    return Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: ClipOval(
-                        child: CachedNetworkImage(
-                          imageUrl: avatarUrl,
-                          placeholder: (context, url) => const CircularProgressIndicator(),
-                          errorWidget: (context, url, error) => const Icon(Icons.error),
-                        ),
-                      ),
-                    );
-                  },
+              // Display name, email, and phone
+              if (!_isEditing) ...[
+                Container(
+                  padding: const EdgeInsets.all(8.0),
+                  alignment: Alignment.center,
+                  child: Text(
+                    _nameController.text.isNotEmpty ? _nameController.text : 'No name provided',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.all(8.0),
+                  alignment: Alignment.center,
+                  child: Text(
+                    _phoneController.text.isNotEmpty ? _phoneController.text : 'No phone provided',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.all(8.0),
+                  alignment: Alignment.center,
+                  child: Text(
+                    FirebaseAuth.instance.currentUser?.email ?? 'No email provided',
+                    style: const TextStyle(fontSize: 16),
+                  ),
                 ),
                 const SizedBox(height: 20),
-                if (!_isChangingPassword) ...[
-                  Text(
-                    user?.email ?? '',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                  TextFormField(
-                    controller: _nameController,
-                    enabled: _isEditing,
-                    decoration: InputDecoration(
-                      labelText: 'Full Name',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      prefixIcon: const Icon(Icons.person),
-                    ),
-                    validator: (value) {
-                      if (_isEditing && (value == null || value.isEmpty)) {
-                        return 'Please enter your name';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    controller: _phoneController,
-                    enabled: _isEditing,
-                    decoration: InputDecoration(
-                      labelText: 'Phone Number',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      prefixIcon: const Icon(Icons.phone),
-                    ),
-                    keyboardType: TextInputType.phone,
-                    validator: (value) {
-                      if (_isEditing && (value == null || value.isEmpty)) {
-                        return 'Please enter your phone number';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 30),
-                  if (!_isEditing)
-                    FilledButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          _isChangingPassword = true;
-                        });
-                      },
-                      icon: const Icon(Icons.lock),
-                      label: const Text('Change Password'),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: Colors.pinkAccent,
-                      ),
-                    ),
-                ] else ...[
-                  // Password change form
-                  TextFormField(
-                    controller: _currentPasswordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      labelText: 'Current Password',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      prefixIcon: const Icon(Icons.lock),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your current password';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    controller: _newPasswordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      labelText: 'New Password',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      prefixIcon: const Icon(Icons.lock_outline),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a new password';
-                      }
-                      if (value.length < 6) {
-                        return 'Password must be at least 6 characters';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    controller: _confirmNewPasswordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      labelText: 'Confirm New Password',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      prefixIcon: const Icon(Icons.lock_outline),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please confirm your new password';
-                      }
-                      if (value != _newPasswordController.text) {
-                        return 'Passwords do not match';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 30),
-                  Row(
+              ],
+
+              // Form to edit profile
+              if (_isEditing)
+                Form(
+                  key: _formKey,
+                  child: Column(
                     children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: _isLoading
-                              ? null
-                              : () {
-                                  setState(() {
-                                    _isChangingPassword = false;
-                                    _currentPasswordController.clear();
-                                    _newPasswordController.clear();
-                                    _confirmNewPasswordController.clear();
-                                  });
-                                },
-                          child: const Text('Cancel'),
+                      // Name field
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Name',
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Name is required';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Phone field
+                      TextFormField(
+                        controller: _phoneController,
+                        decoration: const InputDecoration(
+                          labelText: 'Phone',
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: FilledButton(
-                          onPressed: _isLoading ? null : _changePassword,
-                          style: FilledButton.styleFrom(
-                            backgroundColor: Colors.pinkAccent,
-                          ),
-                          child: _isLoading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Text('Update Password'),
-                        ),
+                      const SizedBox(height: 20),
+
+                      // Save changes button
+                      ElevatedButton(
+                        onPressed: _isLoading ? null : _updateProfile,
+                        child: _isLoading
+                            ? const CircularProgressIndicator()
+                            : const Text('Save Changes'),
                       ),
                     ],
                   ),
-                ],
-                const SizedBox(height: 30),
-                if (!_isEditing && !_isChangingPassword)
-                  OutlinedButton.icon(
-                    onPressed: _signOut,
-                    icon: const Icon(Icons.logout),
-                    label: const Text('Sign Out'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.pinkAccent,
-                    ),
-                  ),
-              ],
-            ),
+                ),
+            ],
           ),
         ),
       ),
