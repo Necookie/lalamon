@@ -27,14 +27,32 @@ class _CategoryDetailsPageState extends State<CategoryDetailsPage> {
     'Burger': [
       {'name': 'Cheeseburger', 'price': '₱100', 'imageUrl': 'lib/Assets/images/Cheese_Burger.jpg'},
       {'name': 'Hatch Chile Burger', 'price': '₱120', 'imageUrl': 'lib/Assets/images/Hatch_Chile_Smash_Burgers.jpg'},
-      {'name': 'hell\'s kitchen Burger', 'price': '₱150', 'imageUrl': 'lib/Assets/images/Hells_Kitchen_Burger.jpg'},
-      {'name': 'hellfire Chicken Burger', 'price': '₱130', 'imageUrl': 'lib/Assets/images/Hellfire_Chicken_Burger.png'},
+        {'name': 'Hell\'s Kitchen Burger', 'price': '₱150', 'imageUrl': 'lib/Assets/images/Hells_Kitchen_Burger.jpg'},
+      {'name': 'Hellfire Chicken Burger', 'price': '₱130', 'imageUrl': 'lib/Assets/images/Hellfire_Chicken_Burger.png'},
       {'name': 'Juicy Lucy Burger', 'price': '₱140', 'imageUrl': 'lib/Assets/images/Juicy_Lucy.jpg'},
-      {'name': 'Jalapeno-onion Burger', 'price': '₱120', 'imageUrl': 'lib/Assets/images/Jalapeno-Onion_Smash_Burger.jpg'},
+      {'name': 'Jalapeno-Onion Burger', 'price': '₱120', 'imageUrl': 'lib/Assets/images/Jalapeno-Onion_Smash_Burger.jpg'},
       {'name': 'Japanese-Style Chili', 'price': '₱150', 'imageUrl': 'lib/Assets/images/Japanese-Style_Chili_Burgers_with_Yuzu_Mayo.jpg'},
       {'name': 'Veggie Burger', 'price': '₱80', 'imageUrl': 'lib/Assets/images/burger.jpeg'},
     ],
-    // Add other categories...
+    'Chicken': [
+      {'name': 'Fried Chicken', 'price': '₱180', 'imageUrl': 'lib/Assets/images/Fried_Chicken.jpg'},
+      {'name': 'BBQ Chicken', 'price': '₱220', 'imageUrl': 'lib/Assets/images/BBQ_Chicken.jpg'},
+      {'name': 'Chicken Parmesan', 'price': '₱250', 'imageUrl': 'lib/Assets/images/Chicken_Parmesan.jpg'},
+      {'name': 'Chicken Alfredo', 'price': '₱230', 'imageUrl': 'lib/Assets/images/Chicken_Alfredo.jpg'},
+    ],
+    'Spaghetti': [
+      {'name': 'Italian Spaghetti', 'price': '₱150', 'imageUrl': 'lib/Assets/images/Spaghetti.jpg'},
+      {'name': 'Linguine', 'price': '₱180', 'imageUrl': 'lib/Assets/images/Linguine.jpg'},
+      {'name': 'Lasagne alla Bolognese', 'price': '₱200', 'imageUrl': 'lib/Assets/images/Lasagne_alla_Bolognese.jpg'},
+    ],
+    'Drinks': [
+      {'name': 'Coca Cola', 'price': '₱30', 'imageUrl': 'lib/Assets/images/Coca_Cola.jpg'},
+      {'name': 'Dr. Pepper', 'price': '₱35', 'imageUrl': 'lib/Assets/images/Dr_Pepper.jpeg'},
+      {'name': 'Pepsi', 'price': '₱30', 'imageUrl': 'lib/Assets/images/Pepsi.jpg'},
+      {'name': 'Fanta', 'price': '₱25', 'imageUrl': 'lib/Assets/images/Fanta.jpg'},
+      {'name': 'Sprite', 'price': '₱30', 'imageUrl': 'lib/Assets/images/Sprite.jpg'},
+      {'name': 'Mountain Dew', 'price': '₱35', 'imageUrl': 'lib/Assets/images/Mountain_Dew.jpg'},
+    ],
   };
 
   @override
