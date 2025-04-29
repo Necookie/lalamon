@@ -5,7 +5,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'error_messages.dart';
-import 'login_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -18,7 +17,7 @@ class _ProfilePageState extends State<ProfilePage> {
   final _formKey = GlobalKey<FormState>();
   bool _isEditing = false;
   bool _isLoading = false;
-  bool _isChangingPassword = false;
+  final bool _isChangingPassword = false;
 
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
