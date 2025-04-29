@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'CheckOutPage.dart'; // Import the CheckOutPage
 
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
@@ -10,9 +11,24 @@ class CartPage extends StatefulWidget {
 class _CartPageState extends State<CartPage> {
   // Mock data for cart items
   final List<Map<String, dynamic>> cartItems = [
-    {'name': 'Cheeseburger', 'price': 100, 'quantity': 1},
-    {'name': 'Pepperoni Pizza', 'price': 200, 'quantity': 2},
-    {'name': 'Veggie Burger', 'price': 80, 'quantity': 1},
+    {
+      'name': 'Cheeseburger',
+      'price': 100,
+      'quantity': 1,
+      'imageUrl': 'lib/Assets/images/Cheese_Burger.jpg', // Path to the image
+    },
+    {
+      'name': 'Pepperoni Pizza',
+      'price': 200,
+      'quantity': 2,
+      'imageUrl': 'lib/Assets/images/pizza.jpeg', // Path to the image
+    },
+    {
+      'name': 'Veggie Burger',
+      'price': 80,
+      'quantity': 1,
+      'imageUrl': 'lib/Assets/images/burger.jpeg', // Path to the image
+    },
   ];
 
   // Calculate total price
@@ -97,6 +113,15 @@ class _CartPageState extends State<CartPage> {
                   return Card(
                     margin: const EdgeInsets.symmetric(vertical: 8.0),
                     child: ListTile(
+                      leading: ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: Image.asset(
+                          item['imageUrl'], // Display the image
+                          height: 50,
+                          width: 50,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
                       title: Text(item['name']),
                       subtitle: Row(
                         children: [
@@ -199,15 +224,14 @@ class _CartPageState extends State<CartPage> {
             // Checkout Button
             ElevatedButton(
               onPressed: () {
-                // Implement checkout logic here
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Proceeding to checkout...'),
-                  ),
+                // Navigate to the CheckOutPage
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const CheckOutPage()),
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.pinkAccent, // Set button color to black
+                backgroundColor: Colors.pinkAccent, // Set button color to pink
                 padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 50),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
