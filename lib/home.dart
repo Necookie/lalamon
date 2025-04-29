@@ -2,90 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:lalamon/categories.dart';
 import 'package:lalamon/login_page.dart';
+import 'package:lalamon/product_details.dart';
 import 'package:lalamon/profile_page.dart';
 import 'all_categories_page.dart';
 import 'cart.dart';
 import 'category_details_page.dart';
-
-class CategoryCard extends StatelessWidget {
-  final String title;
-  final String imageUrl;
-  final String price;
-  final VoidCallback onTap;
-
-  const CategoryCard({
-    super.key,
-    required this.title,
-    required this.imageUrl,
-    required this.price,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    String emoji;
-    switch (title.toLowerCase()) {
-      case 'pizza':
-        emoji = '🍕';
-        break;
-      case 'burger':
-        emoji = '🍔';
-        break;
-      case 'chicken':
-        emoji = '🍗';
-        break;
-      case 'spaghetti':
-        emoji = '🍝';
-        break;
-      case 'drinks':
-        emoji = '🥤';
-        break;
-      default:
-        emoji = '🍽️';
-    }
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 100,
-        margin: const EdgeInsets.symmetric(horizontal: 6),
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: Colors.pinkAccent.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 50,
-              height: 50,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white,
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                emoji,
-                style: const TextStyle(fontSize: 24),
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+import 'recommended_items.dart';
+import 'payment.dart';
+import 'about_us.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -104,22 +30,17 @@ class _HomeState extends State<Home> {
   ];
 
   final List<Map<String, String>> popularItems = [
-    {
-      'title': 'Margherita Pizza',
-      'imageUrl': 'lib/Assets/images/Margherita_Pizza.jpeg',
-    },
-    {
-      'title': 'Cheeseburger Deluxe',
-      'imageUrl': 'lib/Assets/images/Cheese_Burger.jpg',
-    },
-    {
-      'title': 'Fried Chicken',
-      'imageUrl': 'lib/Assets/images/Fried_Chicken.jpg',
-    },
-    {
-      'title': 'Lasagne',
-      'imageUrl': 'lib/Assets/images/Lasagne_alla_Bolognese.jpg',
-    },
+    {'title': 'Margherita Pizza', 'imageUrl': 'lib/Assets/images/Margherita_Pizza.jpeg'},
+    {'title': 'Cheeseburger Deluxe', 'imageUrl': 'lib/Assets/images/Cheese_Burger.jpg'},
+    {'title': 'Fried Chicken', 'imageUrl': 'lib/Assets/images/Fried_Chicken.jpg'},
+    {'title': 'Lasagne', 'imageUrl': 'lib/Assets/images/Lasagne_alla_Bolognese.jpg'},
+  ];
+
+  final List<Map<String, String>> recommendedItems = [
+    {'title': 'Chicago Deep Dish', 'imageUrl': 'lib/Assets/images/Chicago_Deep_Dish_Pizza.jpg', 'price': '₱200'},
+    {'title': 'Hellfire Kitchen Burger', 'imageUrl': 'lib/Assets/images/Hellfire_Chicken_Burger.png', 'price': '₱150'},
+    {'title': 'BBQ Chicken Wings', 'imageUrl': 'lib/Assets/images/BBQ_Chicken.jpg', 'price': '₱180'},
+    {'title': 'Spaghetti Bolognese', 'imageUrl': 'lib/Assets/images/Spaghetti.jpg', 'price': '₱120'},
   ];
 
   TextEditingController searchController = TextEditingController();
@@ -291,22 +212,48 @@ class _HomeState extends State<Home> {
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: [
-                  ListTile(leading: const Icon(Icons.home_outlined, color: Colors.pink), title: const Text('Home'), onTap: () {}),
-                  ListTile(leading: const Icon(Icons.shopping_cart_outlined, color: Colors.pink), title: const Text('Orders & reordering'), onTap: () {}),
-                  ListTile(
-                    leading: const Icon(Icons.person_2_outlined, color: Colors.pink),
-                    title: const Text('View Profile'),
+                  _buildDrawerItem(
+                    icon: Icons.home_outlined,
+                    text: 'Home',
+                    onTap: () {},
+                  ),
+                  _buildDrawerItem(
+                    icon: Icons.shopping_cart_outlined,
+                    text: 'Orders & Reordering',
+                    onTap: () {},
+                  ),
+                  _buildDrawerItem(
+                    icon: Icons.person_2_outlined,
+                    text: 'View Profile',
                     onTap: () {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePage()));
                     },
                   ),
-                  ListTile(leading: const Icon(Icons.location_on_outlined, color: Colors.pink), title: const Text('Addresses'), onTap: () {}),
-                  ListTile(leading: const Icon(Icons.payment, color: Colors.pink), title: const Text('Payment Methods'), onTap: () {}),
-                  ListTile(leading: const Icon(Icons.help_center_outlined, color: Colors.pink), title: const Text('Help Center'), onTap: () {}),
-                  ListTile(leading: const Icon(Icons.settings_outlined, color: Colors.pink), title: const Text('Settings'), onTap: () {}),
-                  ListTile(
-                    leading: const Icon(Icons.logout, color: Colors.pink),
-                    title: const Text('Logout'),
+                  _buildDrawerItem(
+                    icon: Icons.location_on_outlined,
+                    text: 'Addresses',
+                    onTap: () {},
+                  ),
+                  _buildDrawerItem(
+                    icon: Icons.payment,
+                    text: 'Payment Methods',
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const PaymentPage()));
+                    },
+                  ),
+                  _buildDrawerItem(
+                    icon: Icons.help_center_outlined,
+                    text: 'Help Center',
+                    onTap: () {},
+                  ),
+                  _buildDrawerItem(
+                    icon: Icons.settings_outlined,
+                    text: 'Settings',
+                    onTap: () {},
+                  ),
+                  _buildDrawerItem(
+                    icon: Icons.logout,
+                    text: 'Logout',
                     onTap: () async {
                       try {
                         await FirebaseAuth.instance.signOut();
@@ -326,7 +273,9 @@ class _HomeState extends State<Home> {
               ),
             ),
             const Divider(),
-            ListTile(leading: const Icon(Icons.info_outline, color: Colors.pink), title: const Text('About Us'), onTap: () {}),
+            ListTile(leading: const Icon(Icons.info_outline, color: Colors.pink), title: const Text('About Us'), onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const AboutUsPage()));
+            }),
           ],
         ),
       ),
@@ -335,43 +284,36 @@ class _HomeState extends State<Home> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8.0),
-              child: Text('Welcome to Lalamon!', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: RichText(
+                text: const TextSpan(
+                  children: [
+                    TextSpan(
+                      text: 'Welcome to ',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    TextSpan(
+                      text: 'Lalamon!',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.pinkAccent,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: 20),
 
-            // Recommended
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8.0),
-              child: Text('Recommended Items', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.pink)),
-            ),
-            const SizedBox(height: 10),
+            // Recommended Items Section
+            RecommendedItems(recommendedItems: recommendedItems),
 
-            SizedBox(
-              height: 200,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: categories.length,
-                itemBuilder: (context, index) {
-                  final item = categories[index];
-                  return Container(
-                    width: 150,
-                    margin: const EdgeInsets.only(right: 16),
-                    decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(10)),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CachedNetworkImage(imageUrl: item['imageUrl']!, height: 100, width: 100, fit: BoxFit.cover),
-                        const SizedBox(height: 10),
-                        Text(item['title']!, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        Text(item['price']!, textAlign: TextAlign.center),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
             const SizedBox(height: 30),
 
             // Categories
@@ -435,13 +377,26 @@ class _HomeState extends State<Home> {
                   return Container(
                     width: 150,
                     margin: const EdgeInsets.only(right: 16),
-                    decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(10)),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        CachedNetworkImage(imageUrl: item['imageUrl']!, height: 100, width: 100, fit: BoxFit.cover),
+                        // Use Image.asset for local images
+                        Image.asset(
+                          item['imageUrl']!, // Path to the local image
+                          height: 100,
+                          width: 100,
+                          fit: BoxFit.cover,
+                        ),
                         const SizedBox(height: 10),
-                        Text(item['title']!, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        Text(
+                          item['title']!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ],
                     ),
                   );
@@ -452,6 +407,18 @@ class _HomeState extends State<Home> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildDrawerItem({
+    required IconData icon,
+    required String text,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.pink),
+      title: Text(text),
+      onTap: onTap,
     );
   }
 }

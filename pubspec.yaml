@@ -88,6 +88,8 @@ flutter:
   - lib/Assets/images/Japanese-Style_Chili_Burgers_with_Yuzu_Mayo.jpg
   - lib/Assets/images/Juicy_Lucy.jpg  
   - lib/Assets/images/Cheese_Burger.jpg
+  - lib/Assets/images/VISA_Logo.jpg
+  - lib/Assets/images/PayPal_Logo.png
 fonts:
   - family: PoppinsFont
     fonts:
