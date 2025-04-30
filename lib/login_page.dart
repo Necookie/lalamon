@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:lalamon/register_page.dart';
 import 'package:lalamon/forgotpass_page.dart';
 import 'package:lalamon/home.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -16,7 +18,7 @@ class LoginPageState extends State<LoginPage> {
   bool _isChecked = false;
   bool _isLoading = false;
   final _formKey = GlobalKey<FormState>();
-  
+
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
@@ -124,7 +126,8 @@ class LoginPageState extends State<LoginPage> {
       }
     } catch (e) {
       if (mounted) {
-        _showErrorSnackBar(context, 'An error occurred. Please try again later');
+        _showErrorSnackBar(
+            context, 'An error occurred. Please try again later');
       }
     } finally {
       if (mounted) {
@@ -135,11 +138,63 @@ class LoginPageState extends State<LoginPage> {
     }
   }
 
+  Future<void> _signInWithGoogle() async {
+    try {
+      if (kIsWeb) {
+        // Use GoogleAuthProvider for web
+        final GoogleAuthProvider googleProvider = GoogleAuthProvider();
+
+        // Sign in with a popup
+        await FirebaseAuth.instance.signInWithPopup(googleProvider);
+
+        if (mounted) {
+          _showSuccessSnackBar(context, "Google Sign-In successful!");
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const Home()),
+          );
+        }
+      } else {
+        // Use GoogleSignIn for mobile
+        final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+        if (googleUser == null) {
+          // The user canceled the sign-in
+          return;
+        }
+
+        final GoogleSignInAuthentication googleAuth =
+            await googleUser.authentication;
+
+        final OAuthCredential credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+
+        await FirebaseAuth.instance.signInWithCredential(credential);
+
+        if (mounted) {
+          _showSuccessSnackBar(context, "Google Sign-In successful!");
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const Home()),
+          );
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      _showErrorSnackBar(
+          context, e.message ?? "An error occurred during Google Sign-In.");
+    } catch (e) {
+      _showErrorSnackBar(
+          context, "An unexpected error occurred. Please try again.");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
-    
+
     return Scaffold(
       body: Container(
         height: screenHeight,
@@ -206,7 +261,9 @@ class LoginPageState extends State<LoginPage> {
                                   if (value == null || value.isEmpty) {
                                     return 'Please enter your email';
                                   }
-                                  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                                  if (!RegExp(
+                                          r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                                      .hasMatch(value)) {
                                     return 'Please enter a valid email';
                                   }
                                   return null;
@@ -220,7 +277,8 @@ class LoginPageState extends State<LoginPage> {
                                     color: Colors.grey,
                                   ),
                                   filled: true,
-                                  fillColor: const Color.fromARGB(255, 222, 232, 237),
+                                  fillColor:
+                                      const Color.fromARGB(255, 222, 232, 237),
                                 ),
                               ),
                             ),
@@ -254,11 +312,14 @@ class LoginPageState extends State<LoginPage> {
                                     letterSpacing: 5,
                                   ),
                                   filled: true,
-                                  fillColor: const Color.fromARGB(255, 222, 232, 237),
+                                  fillColor:
+                                      const Color.fromARGB(255, 222, 232, 237),
                                   suffixIcon: IconButton(
                                     onPressed: _togglePasswordVisibility,
                                     color: Colors.grey,
-                                    icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility),
+                                    icon: Icon(_obscureText
+                                        ? Icons.visibility_off
+                                        : Icons.visibility),
                                   ),
                                 ),
                               ),
@@ -275,7 +336,8 @@ class LoginPageState extends State<LoginPage> {
                                           _isChecked = value ?? false;
                                         });
                                       },
-                                      side: const BorderSide(color: Colors.grey),
+                                      side:
+                                          const BorderSide(color: Colors.grey),
                                       activeColor: Colors.pink,
                                       checkColor: Colors.white,
                                     ),
@@ -289,7 +351,9 @@ class LoginPageState extends State<LoginPage> {
                                   onTap: () {
                                     Navigator.push(
                                       context,
-                                      MaterialPageRoute(builder: (context) => const ForgotPassPage()),
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              const ForgotPassPage()),
                                     );
                                   },
                                   child: const Text(
@@ -323,27 +387,18 @@ class LoginPageState extends State<LoginPage> {
                                     )
                                   : const Text('LOG IN'),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 25),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Text("Don't have an account?  "),
-                                  GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (context) => const RegisterScreen()),
-                                      );
-                                    },
-                                    child: const Text(
-                                      'SIGN UP',
-                                      style: TextStyle(
-                                        color: Colors.pinkAccent,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                            const SizedBox(height: 20),
+                            FilledButton.icon(
+                              onPressed: _signInWithGoogle,
+                              icon:
+                                  const Icon(Icons.login, color: Colors.white),
+                              label: const Text("Sign in with Google"),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: Colors.redAccent,
+                                minimumSize: const Size(double.infinity, 50),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
                               ),
                             ),
                           ],

@@ -12,7 +12,20 @@
           "package_name": "com.example.lalamon"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1067241701328-5o4g0dl96aefqbdng4o0knp97qnmp5pf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.lalamon",
+            "certificate_hash": "fc73f1571777f15d546fa267a0a6aa13f4b6c738"
+          }
+        },
+        {
+          "client_id": "1067241701328-4j55mkbveu0pbg3tajicpgltk1vmqp37.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDfBgUImSoQ6HtkIYMf3oWTTqj0s073s4s"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1067241701328-4j55mkbveu0pbg3tajicpgltk1vmqp37.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1067241701328-96s8ee8tuietgjejr3h70616e31p8q6t.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.lalamon"
+              }
+            }
+          ]
         }
       }
     }
