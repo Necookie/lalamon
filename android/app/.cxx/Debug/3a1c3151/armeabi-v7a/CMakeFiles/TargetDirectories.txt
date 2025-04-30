@@ -1,0 +1,2 @@
+C:/Users/Matthew Dee/Documents/School work/LSPU/School works/2nd year/2nd Sem/ITEC 106/Final Project/lalamon/android/app/.cxx/Debug/3a1c3151/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/Matthew Dee/Documents/School work/LSPU/School works/2nd year/2nd Sem/ITEC 106/Final Project/lalamon/android/app/.cxx/Debug/3a1c3151/armeabi-v7a/CMakeFiles/rebuild_cache.dir
