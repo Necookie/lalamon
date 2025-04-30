@@ -367,6 +367,29 @@ class LoginPageState extends State<LoginPage> {
                             ),
                             const SizedBox(height: 20),
                             FilledButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const RegisterScreen()),
+                                );
+                              },
+                              style: FilledButton.styleFrom(
+                                elevation: 5,
+                                backgroundColor: Colors.blueAccent,
+                                minimumSize: const Size(double.infinity, 50),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: const Text(
+                                'REGISTER',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            FilledButton(
                               onPressed: _isLoading ? null : _login,
                               style: FilledButton.styleFrom(
                                 elevation: 5,
