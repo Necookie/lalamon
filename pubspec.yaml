@@ -91,6 +91,7 @@ flutter:
   - lib/Assets/images/Cheese_Burger.jpg
   - lib/Assets/images/VISA_Logo.jpg
   - lib/Assets/images/PayPal_Logo.png
+  - lib/Assets/images/google_logo.png
 fonts:
   - family: PoppinsFont
     fonts:
