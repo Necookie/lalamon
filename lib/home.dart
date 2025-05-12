@@ -22,25 +22,73 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final List<Map<String, String>> categories = [
-    {'title': 'Pizza', 'imageUrl': 'lib/Assets/images/pizza.jpeg', 'price': '₱150'},
-    {'title': 'Burger', 'imageUrl': 'lib/Assets/images/burger.jpeg', 'price': '₱80'},
-    {'title': 'Chicken', 'imageUrl': 'lib/Assets/images/Fried_Chicken.jpg', 'price': '₱180'},
-    {'title': 'Spaghetti', 'imageUrl': 'lib/Assets/images/Spaghetti.jpg', 'price': '₱150'},
-    {'title': 'Drinks', 'imageUrl': 'lib/Assets/images/General_Softdrinks.jpg', 'price': '₱25'},
+    {
+      'title': 'Pizza',
+      'imageUrl': 'lib/Assets/images/pizza.jpeg',
+      'price': '₱150'
+    },
+    {
+      'title': 'Burger',
+      'imageUrl': 'lib/Assets/images/burger.jpeg',
+      'price': '₱80'
+    },
+    {
+      'title': 'Chicken',
+      'imageUrl': 'lib/Assets/images/Fried_Chicken.jpg',
+      'price': '₱180'
+    },
+    {
+      'title': 'Spaghetti',
+      'imageUrl': 'lib/Assets/images/Spaghetti.jpg',
+      'price': '₱150'
+    },
+    {
+      'title': 'Drinks',
+      'imageUrl': 'lib/Assets/images/General_Softdrinks.jpg',
+      'price': '₱25'
+    },
   ];
 
   final List<Map<String, String>> popularItems = [
-    {'title': 'Margherita Pizza', 'imageUrl': 'lib/Assets/images/Margherita_Pizza.jpeg'},
-    {'title': 'Cheeseburger Deluxe', 'imageUrl': 'lib/Assets/images/Cheese_Burger.jpg'},
-    {'title': 'Fried Chicken', 'imageUrl': 'lib/Assets/images/Fried_Chicken.jpg'},
-    {'title': 'Lasagne', 'imageUrl': 'lib/Assets/images/Lasagne_alla_Bolognese.jpg'},
+    {
+      'title': 'Margherita Pizza',
+      'imageUrl': 'lib/Assets/images/Margherita_Pizza.jpeg'
+    },
+    {
+      'title': 'Cheeseburger Deluxe',
+      'imageUrl': 'lib/Assets/images/Cheese_Burger.jpg'
+    },
+    {
+      'title': 'Fried Chicken',
+      'imageUrl': 'lib/Assets/images/Fried_Chicken.jpg'
+    },
+    {
+      'title': 'Lasagne',
+      'imageUrl': 'lib/Assets/images/Lasagne_alla_Bolognese.jpg'
+    },
   ];
 
   final List<Map<String, String>> recommendedItems = [
-    {'title': 'Chicago Deep Dish', 'imageUrl': 'lib/Assets/images/Chicago_Deep_Dish_Pizza.jpg', 'price': '₱200'},
-    {'title': 'Hellfire Kitchen Burger', 'imageUrl': 'lib/Assets/images/Hellfire_Chicken_Burger.png', 'price': '₱150'},
-    {'title': 'BBQ Chicken Wings', 'imageUrl': 'lib/Assets/images/BBQ_Chicken.jpg', 'price': '₱180'},
-    {'title': 'Spaghetti Bolognese', 'imageUrl': 'lib/Assets/images/Spaghetti.jpg', 'price': '₱120'},
+    {
+      'title': 'Chicago Deep Dish',
+      'imageUrl': 'lib/Assets/images/Chicago_Deep_Dish_Pizza.jpg',
+      'price': '₱200'
+    },
+    {
+      'title': 'Hellfire Kitchen Burger',
+      'imageUrl': 'lib/Assets/images/Hellfire_Chicken_Burger.png',
+      'price': '₱150'
+    },
+    {
+      'title': 'BBQ Chicken Wings',
+      'imageUrl': 'lib/Assets/images/BBQ_Chicken.jpg',
+      'price': '₱180'
+    },
+    {
+      'title': 'Spaghetti Bolognese',
+      'imageUrl': 'lib/Assets/images/Spaghetti.jpg',
+      'price': '₱120'
+    },
   ];
 
   TextEditingController searchController = TextEditingController();
@@ -91,7 +139,9 @@ class _HomeState extends State<Home> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 50),
-                const Text('Home', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                const Text('Home',
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 20),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -119,7 +169,8 @@ class _HomeState extends State<Home> {
             padding: const EdgeInsets.only(bottom: 58),
             child: IconButton(
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const CartPage()));
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => const CartPage()));
               },
               icon: const Icon(Icons.card_travel_rounded, color: Colors.white),
             ),
@@ -142,11 +193,14 @@ class _HomeState extends State<Home> {
                 if (snapshot.hasData && snapshot.data!.exists) {
                   final data = snapshot.data!.data() as Map<String, dynamic>;
                   nickname = data['name'] ?? 'Guest';
-                  avatarUrl = data.containsKey('avatar_url') ? (data['avatar_url'] ?? '') : '';
+                  avatarUrl = data.containsKey('avatar_url')
+                      ? (data['avatar_url'] ?? '')
+                      : '';
                 }
 
                 if (avatarUrl.isEmpty) {
-                  avatarUrl = 'https://api.dicebear.com/9.x/fun-emoji/svg?seed=${Uri.encodeComponent(nickname)}';
+                  avatarUrl =
+                      'https://api.dicebear.com/9.x/fun-emoji/svg?seed=${Uri.encodeComponent(nickname)}';
                 }
 
                 return DrawerHeader(
@@ -154,7 +208,10 @@ class _HomeState extends State<Home> {
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [Colors.pinkAccent.shade200, Colors.pinkAccent.shade700],
+                      colors: [
+                        Colors.pinkAccent.shade200,
+                        Colors.pinkAccent.shade700
+                      ],
                     ),
                   ),
                   child: Column(
@@ -181,8 +238,10 @@ class _HomeState extends State<Home> {
                               child: CachedNetworkImage(
                                 imageUrl: avatarUrl,
                                 fit: BoxFit.cover,
-                                placeholder: (context, url) => const CircularProgressIndicator(),
-                                errorWidget: (context, url, error) => const Icon(Icons.error),
+                                placeholder: (context, url) =>
+                                    const CircularProgressIndicator(),
+                                errorWidget: (context, url, error) =>
+                                    const Icon(Icons.error),
                               ),
                             ),
                           ),
@@ -191,10 +250,15 @@ class _HomeState extends State<Home> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Welcome back,', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                                const Text('Welcome back,',
+                                    style: TextStyle(
+                                        color: Colors.white70, fontSize: 14)),
                                 const SizedBox(height: 4),
                                 Text(nickname,
-                                    style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis),
                               ],
@@ -226,7 +290,10 @@ class _HomeState extends State<Home> {
                     icon: Icons.person_2_outlined,
                     text: 'View Profile',
                     onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePage()));
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const ProfilePage()));
                     },
                   ),
                   _buildDrawerItem(
@@ -238,7 +305,10 @@ class _HomeState extends State<Home> {
                     icon: Icons.payment,
                     text: 'Payment Methods',
                     onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const PaymentPage()));
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const PaymentPage()));
                     },
                   ),
                   _buildDrawerItem(
@@ -258,12 +328,18 @@ class _HomeState extends State<Home> {
                       try {
                         await FirebaseAuth.instance.signOut();
                         if (context.mounted) {
-                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginPage()));
+                          Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const LoginPage()));
                         }
                       } catch (e) {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Error signing out. Please try again.'), backgroundColor: Colors.red),
+                            const SnackBar(
+                                content: Text(
+                                    'Error signing out. Please try again.'),
+                                backgroundColor: Colors.red),
                           );
                         }
                       }
@@ -273,9 +349,15 @@ class _HomeState extends State<Home> {
               ),
             ),
             const Divider(),
-            ListTile(leading: const Icon(Icons.info_outline, color: Colors.pink), title: const Text('About Us'), onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const AboutUsPage()));
-            }),
+            ListTile(
+                leading: const Icon(Icons.info_outline, color: Colors.pink),
+                title: const Text('About Us'),
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const AboutUsPage()));
+                }),
           ],
         ),
       ),
@@ -286,27 +368,51 @@ class _HomeState extends State<Home> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: RichText(
-                text: const TextSpan(
-                  children: [
-                    TextSpan(
-                      text: 'Welcome to ',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
+              child: StreamBuilder<DocumentSnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(FirebaseAuth.instance.currentUser?.uid)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  String userName =
+                      'Guest'; // Default name if no data is available
+
+                  if (snapshot.hasData && snapshot.data!.exists) {
+                    final data = snapshot.data!.data() as Map<String, dynamic>;
+                    userName = data['name'] ?? 'Guest'; // Fetch the user's name
+                  }
+
+                  return RichText(
+                    text: TextSpan(
+                      children: [
+                        const TextSpan(
+                          text: 'Welcome to ',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                        TextSpan(
+                          text: 'Lalamon, ',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                        TextSpan(
+                          text: '$userName!',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.pinkAccent,
+                          ),
+                        ),
+                      ],
                     ),
-                    TextSpan(
-                      text: 'Lalamon!',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.pinkAccent,
-                      ),
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
             const SizedBox(height: 20),
@@ -322,12 +428,19 @@ class _HomeState extends State<Home> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Categories', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const Text('Categories',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   TextButton(
                     onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => AllCategoriesPage(categories: categories)));
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  AllCategoriesPage(categories: categories)));
                     },
-                    child: const Text('See All', style: TextStyle(color: Colors.pinkAccent)),
+                    child: const Text('See All',
+                        style: TextStyle(color: Colors.pinkAccent)),
                   ),
                 ],
               ),
@@ -350,7 +463,8 @@ class _HomeState extends State<Home> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => CategoryDetailsPage(categoryTitle: category['title']!),
+                          builder: (context) => CategoryDetailsPage(
+                              categoryTitle: category['title']!),
                         ),
                       );
                     },
@@ -363,7 +477,11 @@ class _HomeState extends State<Home> {
             // Popular
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 8.0),
-              child: Text('Popular Items', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.pink)),
+              child: Text('Popular Items',
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.pink)),
             ),
             const SizedBox(height: 10),
 
