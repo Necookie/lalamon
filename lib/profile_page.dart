@@ -257,54 +257,157 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.only(top: 0), // Remove top padding
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Center the profile picture
-              CircleAvatar(
-                radius: 50,
-                backgroundImage: _avatarUrl != null
-                    ? CachedNetworkImageProvider(_avatarUrl!)
-                    : const AssetImage('assets/default_avatar.jpg') as ImageProvider,
-              ),
-              IconButton(
-                onPressed: _isLoading ? null : _pickAndUploadImage,
-                icon: const Icon(Icons.camera_alt),
-                color: Colors.pinkAccent,
+              SizedBox(
+                width: MediaQuery.of(context).size.width, // Full width of the screen
+                height: 350, // Height of the card
+                child: Card(
+                  elevation: 4, // Adds shadow for a card-like effect
+                  shape: RoundedRectangleBorder(
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(12), // Rounded bottom-left corner
+                      bottomRight: Radius.circular(12), // Rounded bottom-right corner
+                    ),
+                  ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.pinkAccent.shade100, // White at the top
+                          Colors.blueGrey.shade100, // Light grey at the bottom
+                        ],
+                        begin: Alignment.topLeft, // Gradient starts from the top-left
+                        end: Alignment.bottomRight, // Gradient ends at the bottom-right
+                      ),
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(12), // Match the card's bottom-left corner
+                        bottomRight: Radius.circular(12), // Match the card's bottom-right corner
+                      ),
+                    ),
+                    padding: const EdgeInsets.all(16.0), // Padding inside the container
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GestureDetector(
+                          onTap: _isLoading ? null : _pickAndUploadImage, // Trigger image upload on tap
+                          child: CircleAvatar(
+                            radius: 50,
+                            backgroundImage: _avatarUrl != null
+                                ? CachedNetworkImageProvider(_avatarUrl!)
+                                : const AssetImage('assets/default_avatar.jpg') as ImageProvider,
+                            child: _isLoading
+                                ? const CircularProgressIndicator(
+                                    color: Colors.white, // Show a loading indicator if uploading
+                                  )
+                                : null,
+                          ),
+                        ),
+                        const SizedBox(height: 35), // Space between avatar and name
+                        Text(
+                          _nameController.text.isNotEmpty ? _nameController.text : 'No name provided',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center, // Center-align the text
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(height: 20),
 
               // Display name, email, and phone
               if (!_isEditing) ...[
-                Container(
-                  padding: const EdgeInsets.all(8.0),
-                  alignment: Alignment.center,
-                  child: Text(
-                    _nameController.text.isNotEmpty ? _nameController.text : 'No name provided',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Divider(
+                      color: Colors.grey,
+                      thickness: 1,
+                      height: 20,
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: Icon(Icons.phone, color: Colors.pinkAccent, size: 30),
+                        ),
+                        Text(
+                          'Phone',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(8.0),
+                      alignment: Alignment.topLeft,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 30),
+                        child: Text(
+                          _phoneController.text.isNotEmpty ? _phoneController.text : 'No phone provided',
+                          style: const TextStyle(
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Divider(
+                      color: Colors.grey,
+                      thickness: 1,
+                      height: 20,
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(right: 10),
+                          child: Icon(Icons.email, color: Colors.pinkAccent, size: 30),
+                        ),
+                        Text(
+                          'Email',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(8.0),
+                      alignment: Alignment.topLeft,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 30),
+                        child: Text(
+                          FirebaseAuth.instance.currentUser?.email ?? 'No email provided',
+                          style: const TextStyle(
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Divider(
+                      color: Colors.grey,
+                      thickness: 1,
+                      height: 20,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.all(8.0),
-                  alignment: Alignment.center,
-                  child: Text(
-                    _phoneController.text.isNotEmpty ? _phoneController.text : 'No phone provided',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.all(8.0),
-                  alignment: Alignment.center,
-                  child: Text(
-                    FirebaseAuth.instance.currentUser?.email ?? 'No email provided',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ),
-                const SizedBox(height: 20),
               ],
 
               // Form to edit profile
@@ -316,9 +419,12 @@ class _ProfilePageState extends State<ProfilePage> {
                       // Name field
                       TextFormField(
                         controller: _nameController,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Name',
-                          border: OutlineInputBorder(),
+                          labelStyle: TextStyle(
+                            color: Colors.pinkAccent,
+                            ),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                           contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         ),
                         validator: (value) {
@@ -328,7 +434,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 30),
 
                       // Phone field
                       TextFormField(
