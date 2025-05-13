@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'firebase_options.dart';
 import 'package:lalamon/login_page.dart';
+import 'package:lalamon/splash_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,7 +32,7 @@ class FoodEcommerce extends StatelessWidget {
       theme: ThemeData(
         fontFamily: 'PoppinsFont',
       ),
-      home: const LoginPage(),
+      home: SplashScreen(),
     );
   }
 }
