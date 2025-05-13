@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'error_messages.dart';
+import 'email_verification_backend.dart'; // Import the email verification backend
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -79,7 +80,8 @@ class _ProfilePageState extends State<ProfilePage> {
             .get();
         if (userDoc.exists) {
           setState(() {
-            _avatarUrl = userDoc.data()?['avatar_url'] ?? ''; // Retrieve avatar URL from Firestore
+            _avatarUrl = userDoc.data()?['avatar_url'] ??
+                ''; // Retrieve avatar URL from Firestore
           });
         }
       } catch (e) {
@@ -87,6 +89,20 @@ class _ProfilePageState extends State<ProfilePage> {
           _showErrorSnackBar('Error loading avatar: $e');
         }
       }
+    }
+  }
+
+  // Email verification logic
+  Future<void> _sendEmailVerification() async {
+    setState(() => _isLoading = true);
+
+    try {
+      await EmailVerificationBackend.sendEmailVerification();
+      _showSuccessSnackBar('Verification email sent! Please check your inbox.');
+    } catch (e) {
+      _showErrorSnackBar(e.toString());
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -179,7 +195,8 @@ class _ProfilePageState extends State<ProfilePage> {
   // Upload profile image to Supabase Storage and update URL in Firestore
   Future<void> _pickAndUploadImage() async {
     final ImagePicker picker = ImagePicker();
-    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile =
+        await picker.pickImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
       setState(() => _isLoading = true);
@@ -192,8 +209,10 @@ class _ProfilePageState extends State<ProfilePage> {
         }
 
         final fileBytes = await pickedFile.readAsBytes();
-        final fileName = '${firebaseUser.uid}/${DateTime.now().millisecondsSinceEpoch}_${pickedFile.name}';
-        final supabaseStorage = Supabase.instance.client.storage.from('profile-pictures');
+        final fileName =
+            '${firebaseUser.uid}/${DateTime.now().millisecondsSinceEpoch}_${pickedFile.name}';
+        final supabaseStorage =
+            Supabase.instance.client.storage.from('profile-pictures');
 
         // Upload image to Supabase Storage
         final response = await supabaseStorage.uploadBinary(
@@ -206,7 +225,10 @@ class _ProfilePageState extends State<ProfilePage> {
         final imageUrl = supabaseStorage.getPublicUrl(fileName);
 
         // Store the Supabase URL in Firestore under the user's profile
-        await FirebaseFirestore.instance.collection('users').doc(firebaseUser.uid).update({
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(firebaseUser.uid)
+            .update({
           'avatar_url': imageUrl, // Save Supabase URL in Firebase Firestore
         });
 
@@ -232,6 +254,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile', style: TextStyle(color: Colors.white)),
@@ -264,14 +288,18 @@ class _ProfilePageState extends State<ProfilePage> {
             children: [
               // Center the profile picture
               SizedBox(
-                width: MediaQuery.of(context).size.width, // Full width of the screen
+                width: MediaQuery.of(context)
+                    .size
+                    .width, // Full width of the screen
                 height: 350, // Height of the card
                 child: Card(
                   elevation: 4, // Adds shadow for a card-like effect
                   shape: RoundedRectangleBorder(
                     borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(12), // Rounded bottom-left corner
-                      bottomRight: Radius.circular(12), // Rounded bottom-right corner
+                      bottomLeft:
+                          Radius.circular(12), // Rounded bottom-left corner
+                      bottomRight:
+                          Radius.circular(12), // Rounded bottom-right corner
                     ),
                   ),
                   child: Container(
@@ -281,42 +309,73 @@ class _ProfilePageState extends State<ProfilePage> {
                           Colors.pinkAccent.shade100, // White at the top
                           Colors.blueGrey.shade100, // Light grey at the bottom
                         ],
-                        begin: Alignment.topLeft, // Gradient starts from the top-left
-                        end: Alignment.bottomRight, // Gradient ends at the bottom-right
+                        begin: Alignment
+                            .topLeft, // Gradient starts from the top-left
+                        end: Alignment
+                            .bottomRight, // Gradient ends at the bottom-right
                       ),
                       borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(12), // Match the card's bottom-left corner
-                        bottomRight: Radius.circular(12), // Match the card's bottom-right corner
+                        bottomLeft: Radius.circular(
+                            12), // Match the card's bottom-left corner
+                        bottomRight: Radius.circular(
+                            12), // Match the card's bottom-right corner
                       ),
                     ),
-                    padding: const EdgeInsets.all(16.0), // Padding inside the container
+                    padding: const EdgeInsets.all(
+                        16.0), // Padding inside the container
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         GestureDetector(
-                          onTap: _isLoading ? null : _pickAndUploadImage, // Trigger image upload on tap
+                          onTap: _isLoading
+                              ? null
+                              : _pickAndUploadImage, // Trigger image upload on tap
                           child: CircleAvatar(
                             radius: 50,
                             backgroundImage: _avatarUrl != null
                                 ? CachedNetworkImageProvider(_avatarUrl!)
-                                : const AssetImage('assets/default_avatar.jpg') as ImageProvider,
+                                : const AssetImage('assets/default_avatar.jpg')
+                                    as ImageProvider,
                             child: _isLoading
                                 ? const CircularProgressIndicator(
-                                    color: Colors.white, // Show a loading indicator if uploading
+                                    color: Colors
+                                        .white, // Show a loading indicator if uploading
                                   )
                                 : null,
                           ),
                         ),
-                        const SizedBox(height: 35), // Space between avatar and name
+                        const SizedBox(
+                            height: 35), // Space between avatar and name
                         Text(
-                          _nameController.text.isNotEmpty ? _nameController.text : 'No name provided',
+                          _nameController.text.isNotEmpty
+                              ? _nameController.text
+                              : 'No name provided',
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                           textAlign: TextAlign.center, // Center-align the text
                         ),
+
+                        // Add the Verify Email button under the username
+                        if (user != null && !user.emailVerified) ...[
+                          const SizedBox(
+                              height: 10), // Space between name and button
+                          ElevatedButton(
+                            onPressed:
+                                _isLoading ? null : _sendEmailVerification,
+                            child: _isLoading
+                                ? const CircularProgressIndicator()
+                                : const Text('Verify Email'),
+                          ),
+                          const SizedBox(
+                              height: 10), // Space between button and message
+                          const Text(
+                            'Your email is not verified.',
+                            style: TextStyle(color: Colors.red, fontSize: 14),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -339,7 +398,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.only(right: 8),
-                          child: Icon(Icons.phone, color: Colors.pinkAccent, size: 30),
+                          child: Icon(Icons.phone,
+                              color: Colors.pinkAccent, size: 30),
                         ),
                         Text(
                           'Phone',
@@ -357,7 +417,9 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: Padding(
                         padding: const EdgeInsets.only(left: 30),
                         child: Text(
-                          _phoneController.text.isNotEmpty ? _phoneController.text : 'No phone provided',
+                          _phoneController.text.isNotEmpty
+                              ? _phoneController.text
+                              : 'No phone provided',
                           style: const TextStyle(
                             fontSize: 16,
                           ),
@@ -375,7 +437,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.only(right: 10),
-                          child: Icon(Icons.email, color: Colors.pinkAccent, size: 30),
+                          child: Icon(Icons.email,
+                              color: Colors.pinkAccent, size: 30),
                         ),
                         Text(
                           'Email',
@@ -393,7 +456,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: Padding(
                         padding: const EdgeInsets.only(left: 30),
                         child: Text(
-                          FirebaseAuth.instance.currentUser?.email ?? 'No email provided',
+                          FirebaseAuth.instance.currentUser?.email ??
+                              'No email provided',
                           style: const TextStyle(
                             fontSize: 16,
                           ),
@@ -423,9 +487,11 @@ class _ProfilePageState extends State<ProfilePage> {
                           labelText: 'Name',
                           labelStyle: TextStyle(
                             color: Colors.pinkAccent,
-                            ),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          ),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8)),
+                          contentPadding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -442,7 +508,8 @@ class _ProfilePageState extends State<ProfilePage> {
                         decoration: const InputDecoration(
                           labelText: 'Phone',
                           border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          contentPadding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -464,4 +531,3 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 }
-
