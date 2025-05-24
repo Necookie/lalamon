@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:lalamon/register_page.dart';
 import 'package:lalamon/forgotpass_page.dart';
 import 'package:lalamon/home.dart';
+import 'package:lalamon/admin_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginPage extends StatefulWidget {
@@ -35,66 +37,49 @@ class LoginPageState extends State<LoginPage> {
     });
   }
 
-  void _showSuccessSnackBar(BuildContext context, String message) {
+  void _showSnackBar(BuildContext context, String message, Color color, Icon icon) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.check_circle, color: Colors.white),
+            icon,
             const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                message,
-                style: const TextStyle(color: Colors.white),
-              ),
-            ),
+            Expanded(child: Text(message, style: const TextStyle(color: Colors.white))),
           ],
         ),
-        backgroundColor: Colors.green.shade600,
+        backgroundColor: color,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         margin: const EdgeInsets.all(16),
         duration: const Duration(seconds: 2),
       ),
     );
   }
 
-  void _showErrorSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.error_outline, color: Colors.white),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                message,
-                style: const TextStyle(color: Colors.white),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: Colors.pinkAccent.shade700,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        margin: const EdgeInsets.all(16),
-        duration: const Duration(seconds: 4),
-      ),
-    );
+  Future<void> _navigateBasedOnRole(User user) async {
+  final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+
+  print('User UID: ${user.uid}');
+  print('Document exists: ${doc.exists}');
+  print('Document data: ${doc.data()}');
+  print('Role: ${doc.data()?['role']}');
+
+  final role = doc.data()?['role'];
+
+  if (mounted) {
+    if (role == 'admin') {
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AdminPanelHome()));
+    } else {
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const Home()));
+    }
   }
+}
+
 
   Future<void> _login() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
       final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -103,90 +88,49 @@ class LoginPageState extends State<LoginPage> {
       );
 
       if (mounted) {
-        _showSuccessSnackBar(context, "Login successful!");
-        // Small delay to show the success message
+        _showSnackBar(context, "Login successful!", Colors.green.shade600, const Icon(Icons.check_circle, color: Colors.white));
         await Future.delayed(const Duration(seconds: 1));
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const Home()),
-          );
-        }
+        await _navigateBasedOnRole(credential.user!);
       }
     } on FirebaseAuthException catch (e) {
-      if (mounted) {
-        final errorMessage = switch (e.code) {
-          'user-not-found' => 'No user found with this email',
-          'wrong-password' => 'Wrong password provided',
-          'invalid-email' => 'Please enter a valid email address',
-          'user-disabled' => 'This account has been disabled',
-          _ => 'An error occurred. Please try again later'
-        };
-        _showErrorSnackBar(context, errorMessage);
-      }
-    } catch (e) {
-      if (mounted) {
-        _showErrorSnackBar(
-            context, 'An error occurred. Please try again later');
-      }
+      final message = switch (e.code) {
+        'user-not-found' => 'No user found with this email',
+        'wrong-password' => 'Wrong password provided',
+        'invalid-email' => 'Please enter a valid email address',
+        'user-disabled' => 'This account has been disabled',
+        _ => 'An error occurred. Please try again later'
+      };
+      _showSnackBar(context, message, Colors.pinkAccent.shade700, const Icon(Icons.error_outline, color: Colors.white));
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   Future<void> _signInWithGoogle() async {
     try {
+      UserCredential userCredential;
+
       if (kIsWeb) {
-        // Use GoogleAuthProvider for web
         final GoogleAuthProvider googleProvider = GoogleAuthProvider();
-
-        // Sign in with a popup
-        await FirebaseAuth.instance.signInWithPopup(googleProvider);
-
-        if (mounted) {
-          _showSuccessSnackBar(context, "Google Sign-In successful!");
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const Home()),
-          );
-        }
+        userCredential = await FirebaseAuth.instance.signInWithPopup(googleProvider);
       } else {
-        // Use GoogleSignIn for mobile
         final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-
-        if (googleUser == null) {
-          // The user canceled the sign-in
-          return;
-        }
-
-        final GoogleSignInAuthentication googleAuth =
-            await googleUser.authentication;
-
-        final OAuthCredential credential = GoogleAuthProvider.credential(
+        if (googleUser == null) return;
+        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+        final credential = GoogleAuthProvider.credential(
           accessToken: googleAuth.accessToken,
           idToken: googleAuth.idToken,
         );
-
-        await FirebaseAuth.instance.signInWithCredential(credential);
-
-        if (mounted) {
-          _showSuccessSnackBar(context, "Google Sign-In successful!");
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const Home()),
-          );
-        }
+        userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
       }
-    } on FirebaseAuthException catch (e) {
-      _showErrorSnackBar(
-          context, e.message ?? "An error occurred during Google Sign-In.");
+
+      if (mounted) {
+        _showSnackBar(context, "Google Sign-In successful!", Colors.green.shade600, const Icon(Icons.check_circle, color: Colors.white));
+        await Future.delayed(const Duration(seconds: 1));
+        await _navigateBasedOnRole(userCredential.user!);
+      }
     } catch (e) {
-      _showErrorSnackBar(
-          context, "An unexpected error occurred. Please try again.");
+      _showSnackBar(context, "Google Sign-In failed", Colors.pinkAccent.shade700, const Icon(Icons.error_outline, color: Colors.white));
     }
   }
 
@@ -203,41 +147,22 @@ class LoginPageState extends State<LoginPage> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Colors.pinkAccent.shade200,
-              Colors.pinkAccent.shade700,
-            ],
+            colors: [Colors.pinkAccent.shade200, Colors.pinkAccent.shade700],
           ),
         ),
         child: SingleChildScrollView(
           child: Center(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 160),
+              padding: const EdgeInsets.symmetric(vertical: 160),
               child: Column(
                 children: [
-                  const Text(
-                    'Log In',
-                    style: TextStyle(
-                      fontFamily: "PoppinsFont",
-                      fontWeight: FontWeight.bold,
-                      fontSize: 35,
-                      color: Colors.white,
-                    ),
-                  ),
+                  const Text('Log In', style: TextStyle(fontFamily: "PoppinsFont", fontWeight: FontWeight.bold, fontSize: 35, color: Colors.white)),
                   const SizedBox(height: 10),
-                  const Text(
-                    'Please sign in to your existing account',
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.white,
-                    ),
-                  ),
+                  const Text('Please sign in to your existing account', style: TextStyle(fontSize: 15, color: Colors.white)),
                   const SizedBox(height: 20),
                   Card(
                     elevation: 7,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     child: Padding(
                       padding: const EdgeInsets.all(30),
                       child: Form(
@@ -245,81 +170,46 @@ class LoginPageState extends State<LoginPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const SizedBox(width: double.infinity),
-                            const Text(
-                              'EMAIL',
-                              style: TextStyle(
-                                fontSize: 20,
-                              ),
-                            ),
+                            const Text('EMAIL', style: TextStyle(fontSize: 20)),
                             Padding(
                               padding: const EdgeInsets.only(bottom: 20),
                               child: TextFormField(
                                 controller: _emailController,
                                 keyboardType: TextInputType.emailAddress,
                                 validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter your email';
-                                  }
-                                  if (!RegExp(
-                                          r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                                      .hasMatch(value)) {
-                                    return 'Please enter a valid email';
-                                  }
+                                  if (value == null || value.isEmpty) return 'Please enter your email';
+                                  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) return 'Please enter a valid email';
                                   return null;
                                 },
                                 decoration: InputDecoration(
-                                  border: OutlineInputBorder(
-                                    borderSide: BorderSide.none,
-                                  ),
+                                  border: InputBorder.none,
                                   hintText: "example@gmail.com",
-                                  hintStyle: TextStyle(
-                                    color: Colors.grey,
-                                  ),
+                                  hintStyle: const TextStyle(color: Colors.grey),
                                   filled: true,
-                                  fillColor:
-                                      const Color.fromARGB(255, 222, 232, 237),
+                                  fillColor: const Color.fromARGB(255, 222, 232, 237),
                                 ),
                               ),
                             ),
-                            const Text(
-                              'PASSWORD',
-                              style: TextStyle(
-                                fontSize: 20,
-                              ),
-                            ),
+                            const Text('PASSWORD', style: TextStyle(fontSize: 20)),
                             Padding(
                               padding: const EdgeInsets.only(bottom: 20),
                               child: TextFormField(
                                 controller: _passwordController,
                                 obscureText: _obscureText,
                                 validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter your password';
-                                  }
-                                  if (value.length < 6) {
-                                    return 'Password must be at least 6 characters';
-                                  }
+                                  if (value == null || value.isEmpty) return 'Please enter your password';
+                                  if (value.length < 6) return 'Password must be at least 6 characters';
                                   return null;
                                 },
                                 decoration: InputDecoration(
-                                  border: OutlineInputBorder(
-                                    borderSide: BorderSide.none,
-                                  ),
+                                  border: InputBorder.none,
                                   hintText: "*******",
-                                  hintStyle: TextStyle(
-                                    color: Colors.grey,
-                                    letterSpacing: 5,
-                                  ),
+                                  hintStyle: const TextStyle(color: Colors.grey, letterSpacing: 5),
                                   filled: true,
-                                  fillColor:
-                                      const Color.fromARGB(255, 222, 232, 237),
+                                  fillColor: const Color.fromARGB(255, 222, 232, 237),
                                   suffixIcon: IconButton(
                                     onPressed: _togglePasswordVisibility,
-                                    color: Colors.grey,
-                                    icon: Icon(_obscureText
-                                        ? Icons.visibility_off
-                                        : Icons.visibility),
+                                    icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility, color: Colors.grey),
                                   ),
                                 ),
                               ),
@@ -331,37 +221,16 @@ class LoginPageState extends State<LoginPage> {
                                   children: [
                                     Checkbox(
                                       value: _isChecked,
-                                      onChanged: (bool? value) {
-                                        setState(() {
-                                          _isChecked = value ?? false;
-                                        });
-                                      },
-                                      side:
-                                          const BorderSide(color: Colors.grey),
+                                      onChanged: (value) => setState(() => _isChecked = value ?? false),
+                                      side: const BorderSide(color: Colors.grey),
                                       activeColor: Colors.pink,
-                                      checkColor: Colors.white,
                                     ),
-                                    const Text(
-                                      'Remember me',
-                                      style: TextStyle(color: Colors.grey),
-                                    ),
+                                    const Text('Remember me', style: TextStyle(color: Colors.grey)),
                                   ],
                                 ),
                                 GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              const ForgotPassPage()),
-                                    );
-                                  },
-                                  child: const Text(
-                                    'Forgot Password',
-                                    style: TextStyle(
-                                      color: Colors.pinkAccent,
-                                    ),
-                                  ),
+                                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPassPage())),
+                                  child: const Text('Forgot Password', style: TextStyle(color: Colors.pinkAccent)),
                                 ),
                               ],
                             ),
@@ -369,86 +238,38 @@ class LoginPageState extends State<LoginPage> {
                             FilledButton(
                               onPressed: _isLoading ? null : _login,
                               style: FilledButton.styleFrom(
-                                elevation: 5,
                                 backgroundColor: Colors.pinkAccent,
                                 minimumSize: const Size(double.infinity, 50),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                               ),
                               child: _isLoading
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
+                                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                                   : const Text('LOG IN'),
                             ),
                             const SizedBox(height: 10),
                             Center(
                               child: GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            const RegisterScreen()),
-                                  );
-                                },
+                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterScreen())),
                                 child: RichText(
                                   text: TextSpan(
                                     children: [
-                                      TextSpan(
-                                        text: 'Don\'t have an account? ',
-                                        style: TextStyle(
-                                          color: const Color.fromARGB(
-                                              255, 16, 14, 14),
-                                        ),
-                                      ),
-                                      TextSpan(
-                                        text: 'Sign Up',
-                                        style: const TextStyle(
-                                          color: Colors.pinkAccent,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
+                                      const TextSpan(text: 'Don\'t have an account? ', style: TextStyle(color: Colors.black)),
+                                      const TextSpan(text: 'Sign Up', style: TextStyle(color: Colors.pinkAccent, fontWeight: FontWeight.bold)),
                                     ],
                                   ),
                                 ),
                               ),
                             ),
                             const SizedBox(height: 80),
-                            Center(
-                              child: const Text(
-                                'or continue with',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.pinkAccent,
-                                  fontWeight: FontWeight.bold
-                                ),
-                              ),
-                            ),
+                            const Center(child: Text('or continue with', style: TextStyle(fontSize: 16, color: Colors.pinkAccent, fontWeight: FontWeight.bold))),
                             const SizedBox(height: 20),
                             Center(
                               child: GestureDetector(
-                                onTap: _signInWithGoogle, // Call the Google sign-in function when tapped
+                                onTap: _signInWithGoogle,
                                 child: Container(
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.white, // Background color for the Google logo
-                                    boxShadow: [
-                                      
-                                    ],
-                                  ),
-                                  padding: const EdgeInsets.all(12), // Padding inside the circle
-                                  child: Image.asset(
-                                    'lib/Assets/images/google_logo.png', // Path to your Google logo
-                                    width: 40, // Logo width
-                                    height: 40, // Logo height
-                                  ),
+                                  decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
+                                  padding: const EdgeInsets.all(12),
+                                  child: Image.asset('lib/Assets/images/google_logo.png', width: 40, height: 40),
                                 ),
                               ),
                             ),

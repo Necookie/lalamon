@@ -120,6 +120,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         'phone': '',
         'createdAt': FieldValue.serverTimestamp(),
         'avatarSeed': nickname, // Use nickname as initial avatar seed
+        'role': 'user', // Add this line
       });
 
       if (mounted) {
