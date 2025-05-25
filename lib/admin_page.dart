@@ -1,28 +1,13 @@
+// admin_page.dart
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'admin_products.dart';
+import 'admin_accounts.dart';
+import 'admin_orders.dart';
+import 'login_page.dart'; // Make sure this import is correct
 
-class AdminPanelHome extends StatefulWidget {
+class AdminPanelHome extends StatelessWidget {
   const AdminPanelHome({super.key});
-
-  @override
-  State<AdminPanelHome> createState() => _AdminPanelHomeState();
-}
-
-class _AdminPanelHomeState extends State<AdminPanelHome> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  Future<void> _promoteToAdmin(String userId) async {
-    await _firestore.collection('users').doc(userId).update({'role': 'admin'});
-  }
-
-  Future<void> _demoteToUser(String userId) async {
-    await _firestore.collection('users').doc(userId).update({'role': 'user'});
-  }
-
-  Future<void> _deleteUser(String userId) async {
-    await _firestore.collection('users').doc(userId).delete();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,83 +16,112 @@ class _AdminPanelHomeState extends State<AdminPanelHome> {
         title: const Text('Admin Panel'),
         backgroundColor: Colors.pinkAccent,
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: _firestore.collection('users').snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return const Center(child: Text('Error loading users'));
-          }
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          final users = snapshot.data!.docs;
-
-          return ListView.separated(
-            padding: const EdgeInsets.all(12),
-            itemCount: users.length,
-            separatorBuilder: (_, __) => const Divider(),
-            itemBuilder: (context, index) {
-              final user = users[index];
-              final data = user.data() as Map<String, dynamic>;
-              final role = data['role'] ?? 'user';
-              final name = data['name'] ?? 'No Name';
-              final email = data['email'] ?? 'No Email';
-
-              return ListTile(
-                title: Text(name),
-                subtitle: Text(email),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (role != 'admin')
-                      IconButton(
-                        icon: const Icon(Icons.upgrade, color: Colors.green),
-                        tooltip: 'Promote to Admin',
-                        onPressed: () => _promoteToAdmin(user.id),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(color: Colors.pinkAccent),
+              child: Text(
+                'Admin Controls',
+                style: TextStyle(color: Colors.white, fontSize: 24),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.shopping_bag),
+              title: const Text('Products'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AdminProductsPage()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.people),
+              title: const Text('Accounts'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AdminAccountsPage()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.receipt_long),
+              title: const Text('Orders'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AdminOrdersPage()),
+                );
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text('Logout'),
+              onTap: () async {
+                try {
+                  await FirebaseAuth.instance.signOut();
+                  if (context.mounted) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => const LoginPage()),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Error signing out. Please try again.'),
+                        backgroundColor: Colors.red,
                       ),
-                    if (role == 'admin')
-                      IconButton(
-                        icon: const Icon(Icons.downhill_skiing, color: Colors.orange),
-                        tooltip: 'Demote to User',
-                        onPressed: () => _demoteToUser(user.id),
-                      ),
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      tooltip: 'Delete User',
-                      onPressed: () async {
-                        bool confirm = await showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text('Confirm Delete'),
-                            content: Text('Delete user "$name"?'),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context, false),
-                                child: const Text('Cancel'),
-                              ),
-                              TextButton(
-                                onPressed: () => Navigator.pop(context, true),
-                                child: const Text('Delete', style: TextStyle(color: Colors.red)),
-                              ),
-                            ],
-                          ),
-                        );
-                        if (confirm) {
-                          await _deleteUser(user.id);
-                        }
-                      },
-                    ),
-                  ],
-                ),
-                leading: CircleAvatar(
-                  backgroundColor: role == 'admin' ? Colors.pinkAccent : Colors.grey,
-                  child: Text(name.isNotEmpty ? name[0].toUpperCase() : '?'),
-                ),
-              );
-            },
-          );
-        },
+                    );
+                  }
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+      body: GridView.count(
+        crossAxisCount: 2,
+        padding: const EdgeInsets.all(16),
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        children: [
+          _buildCard(context, Icons.shopping_bag, 'Manage Products', const AdminProductsPage()),
+          _buildCard(context, Icons.people, 'Manage Accounts', const AdminAccountsPage()),
+          _buildCard(context, Icons.receipt_long, 'View Orders', const AdminOrdersPage()),
+          _buildCard(context, Icons.analytics, 'Sales Report', null),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCard(BuildContext context, IconData icon, String label, Widget? targetPage) {
+    return InkWell(
+      onTap: targetPage != null
+          ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => targetPage))
+          : null,
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        color: Colors.pink.shade50,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 48, color: Colors.pinkAccent),
+              const SizedBox(height: 12),
+              Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16)),
+            ],
+          ),
+        ),
       ),
     );
   }
