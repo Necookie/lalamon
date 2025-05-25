@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_paypal/flutter_paypal.dart';
 import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'dart:html' as html; // For web redirect
+import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
 
 class CheckOutPage extends StatefulWidget {
   const CheckOutPage({super.key});
@@ -41,6 +42,30 @@ class _CheckOutPageState extends State<CheckOutPage> {
         await doc.reference.update({'stock': newStock < 0 ? 0 : newStock});
       }
     }
+  }
+
+  Future<void> saveOrderToFirestore({required String paymentMethod, required double totalAmount}) async {
+    final user = FirebaseAuth.instance.currentUser;
+    final cartItems = CartManager().cartItems;
+
+    print('Saving order to Firestore...');
+    await FirebaseFirestore.instance.collection('orders').add({
+      'userId': user?.uid ?? 'guest',
+      'userEmail': user?.email ?? '',
+      'userName': user?.displayName ?? '',
+      'address': addressController.text,
+      'paymentMethod': paymentMethod,
+      'totalAmount': totalAmount,
+      'status': 'Pending', // or 'Processing'
+      'createdAt': FieldValue.serverTimestamp(),
+      'items': cartItems.map((item) => {
+        'name': item['name'],
+        'quantity': item['quantity'],
+        'price': item['price'],
+        'imageUrl': item['imageUrl'],
+      }).toList(),
+    });
+    print('Order saved!');
   }
 
   @override
@@ -181,8 +206,16 @@ class _CheckOutPageState extends State<CheckOutPage> {
               ? SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       if (kIsWeb) {
+                        // TEMP FIX: Save order BEFORE redirecting to PayPal
+                        await saveOrderToFirestore(
+                          paymentMethod: 'PayPal',
+                          totalAmount: totalPrice,
+                        );
+                        await updateStockAfterOrder();
+                        CartManager().clear();
+
                         // Build PayPal sandbox URL for web
                         final total = totalPrice.toStringAsFixed(2);
                         final business = "sb-w1qht34783757@business.example.com";
@@ -200,6 +233,12 @@ class _CheckOutPageState extends State<CheckOutPage> {
                             "&cancel_return=$cancelUrl";
 
                         html.window.open(url, "_blank");
+
+                        // Optionally show a dialog or snackbar
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Order placed! Complete payment in the new PayPal tab.'))
+                        );
+                        setState(() {});
                       } else {
                         // Mobile: Use UsePaypal widget as before
                         Navigator.of(context).push(
@@ -234,6 +273,10 @@ class _CheckOutPageState extends State<CheckOutPage> {
                               ],
                               note: "Contact us for any questions on your order.",
                               onSuccess: (Map params) async {
+                                await saveOrderToFirestore(
+                                  paymentMethod: 'PayPal',
+                                  totalAmount: totalPrice,
+                                );
                                 await updateStockAfterOrder();
                                 CartManager().clear();
                                 if (!mounted) return;
@@ -246,8 +289,8 @@ class _CheckOutPageState extends State<CheckOutPage> {
                                     actions: [
                                       ElevatedButton(
                                         onPressed: () {
-                                          Navigator.pop(context); // Close dialog
-                                          Navigator.pop(context); // Go back to previous page
+                                          Navigator.pop(context);
+                                          Navigator.pop(context);
                                           setState(() {});
                                         },
                                         child: const Text('OK'),
@@ -281,6 +324,7 @@ class _CheckOutPageState extends State<CheckOutPage> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
+                      print('Place Order pressed');
                       if (addressController.text.trim().isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Please enter your address.')),
@@ -290,23 +334,27 @@ class _CheckOutPageState extends State<CheckOutPage> {
                       // Show confirmation dialog
                       showDialog(
                         context: context,
-                        builder: (context) => AlertDialog(
+                        builder: (dialogContext) => AlertDialog(
                           title: const Text('Confirm Order'),
                           content: const Text('Are you sure you want to place this order?'),
                           actions: [
                             TextButton(
                               onPressed: () {
-                                Navigator.pop(context); // Close dialog
+                                Navigator.pop(dialogContext); // Close dialog
                               },
                               child: const Text('Cancel'),
                             ),
                             ElevatedButton(
                               onPressed: () async {
-                                Navigator.pop(context); // Close confirm dialog
+                                Navigator.pop(dialogContext); // Close confirm dialog
 
+                                await saveOrderToFirestore(
+                                  paymentMethod: selectedPayment,
+                                  totalAmount: totalPrice,
+                                );
                                 await updateStockAfterOrder();
 
-                                if (!mounted) return; // Prevents calling context if widget is disposed
+                                if (!mounted) return;
 
                                 showDialog(
                                   context: context,
@@ -317,10 +365,10 @@ class _CheckOutPageState extends State<CheckOutPage> {
                                     actions: [
                                       ElevatedButton(
                                         onPressed: () {
-                                          Navigator.pop(context); // Close success dialog
-                                          Navigator.pop(context); // Go back to previous page
-                                          CartManager().clear(); // Clear the cart after order
-                                          setState(() {}); // Refresh the page if needed
+                                          Navigator.pop(context);
+                                          Navigator.pop(context);
+                                          CartManager().clear();
+                                          setState(() {});
                                         },
                                         child: const Text('OK'),
                                       ),
