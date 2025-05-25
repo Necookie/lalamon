@@ -37,6 +37,18 @@ class ProductDetails extends StatelessWidget {
           }
 
           final product = snapshot.data!;
+          final stock = product['stock'] ?? 0;
+
+          // If stock is 0 or less, show not available message
+          if (stock <= 0) {
+            return const Center(
+              child: Text(
+                'This product is out of stock.',
+                style: TextStyle(fontSize: 20, color: Colors.red),
+              ),
+            );
+          }
+
           final name = product['name'] ?? 'Unnamed';
           final price = product['price'] ?? '';
           final imageUrl = product['imageUrl'] ?? '';

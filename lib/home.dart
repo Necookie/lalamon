@@ -12,6 +12,7 @@ import 'category_details_page.dart';
 import 'recommended_items.dart';
 import 'payment.dart';
 import 'about_us.dart';
+import 'order_history.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -279,7 +280,14 @@ class _HomeState extends State<Home> {
                   _buildDrawerItem(
                     icon: Icons.shopping_cart_outlined,
                     text: 'Orders & Reordering',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const OrdersHistoryPage(),
+                        ),
+                      );
+                    },
                   ),
                   _buildDrawerItem(
                     icon: Icons.person_2_outlined,

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lalamon/cart_manager.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_paypal/flutter_paypal.dart';
+import 'package:flutter/foundation.dart'; // For kIsWeb
+import 'dart:html' as html; // For web redirect
 
 class CheckOutPage extends StatefulWidget {
   const CheckOutPage({super.key});
@@ -174,79 +177,179 @@ class _CheckOutPageState extends State<CheckOutPage> {
             ),
             const SizedBox(height: 30),
             // Place Order Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  if (addressController.text.trim().isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Please enter your address.')),
-                    );
-                    return;
-                  }
-                  // Show confirmation dialog
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Confirm Order'),
-                      content: const Text('Are you sure you want to place this order?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context); // Close dialog
-                          },
-                          child: const Text('Cancel'),
-                        ),
-                        ElevatedButton(
-                          onPressed: () async {
-                            Navigator.pop(context); // Close confirm dialog
+            (selectedPayment == 'PayPal')
+              ? SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (kIsWeb) {
+                        // Build PayPal sandbox URL for web
+                        final total = totalPrice.toStringAsFixed(2);
+                        final business = "sb-w1qht34783757@business.example.com";
+                        final itemName = cartItems.map((item) => item['name']).join(', ');
+                        final returnUrl = Uri.encodeComponent("https://samplesite.com/return");
+                        final cancelUrl = Uri.encodeComponent("https://samplesite.com/cancel");
 
-                            // Update stock in Firestore
-                            await updateStockAfterOrder();
+                        final url =
+                            "https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_xclick"
+                            "&business=$business"
+                            "&item_name=$itemName"
+                            "&amount=$total"
+                            "&currency_code=USD"
+                            "&return=$returnUrl"
+                            "&cancel_return=$cancelUrl";
 
-                            // Show order success prompt
-                            showDialog(
-                              context: context,
-                              barrierDismissible: false,
-                              builder: (context) => AlertDialog(
-                                title: const Text('Order Success'),
-                                content: const Text('Your order has been placed successfully!'),
-                                actions: [
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      Navigator.pop(context); // Close success dialog
-                                      Navigator.pop(context); // Optionally go back to previous page
-                                      CartManager().clear(); // Clear the cart after order
-                                      setState(() {}); // Refresh the page if needed
-                                    },
-                                    child: const Text('OK'),
+                        html.window.open(url, "_blank");
+                      } else {
+                        // Mobile: Use UsePaypal widget as before
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (BuildContext context) => UsePaypal(
+                              sandboxMode: true,
+                              clientId: "AQIxzp_Jt2uB0gBb2Lr-enUZxaqPEbQPH2IXRCyMmo3FU0Rc77bXyBHknVlMOMiAH1ixCovAHY2tMZyv",
+                              secretKey: "EAk9qMMflY0jBmO-HmGpHc9ZCrjf1wolcfQQIOfDQDfmS9LTp2aYVwX60-qVavq8COhniz160fm2Tlgv",
+                              returnURL: "https://samplesite.com/return",
+                              cancelURL: "https://samplesite.com/cancel",
+                              transactions: [
+                                {
+                                  "amount": {
+                                    "total": totalPrice.toStringAsFixed(2),
+                                    "currency": "USD",
+                                    "details": {
+                                      "subtotal": totalPrice.toStringAsFixed(2),
+                                      "shipping": '0',
+                                      "shipping_discount": 0
+                                    }
+                                  },
+                                  "description": "Order payment",
+                                  "item_list": {
+                                    "items": CartManager().cartItems.map((item) => {
+                                      "name": item['name'],
+                                      "quantity": item['quantity'].toString(),
+                                      "price": item['price'].toString(),
+                                      "currency": "USD"
+                                    }).toList(),
+                                  }
+                                }
+                              ],
+                              note: "Contact us for any questions on your order.",
+                              onSuccess: (Map params) async {
+                                await updateStockAfterOrder();
+                                CartManager().clear();
+                                if (!mounted) return;
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Order Successful'),
+                                    content: const Text('Your order has been placed and paid via PayPal!'),
+                                    actions: [
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.pop(context); // Close dialog
+                                          Navigator.pop(context); // Go back to previous page
+                                          setState(() {});
+                                        },
+                                        child: const Text('OK'),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.pinkAccent,
+                                );
+                              },
+                              onError: (error) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Payment error: $error'))
+                                );
+                              },
+                              onCancel: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Payment cancelled'))
+                                );
+                              },
+                            ),
                           ),
-                          child: const Text('Confirm'),
-                        ),
-                      ],
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
                     ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pinkAccent,
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    child: const Text('Pay with PayPal'),
+                  ),
+                )
+              : SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (addressController.text.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Please enter your address.')),
+                        );
+                        return;
+                      }
+                      // Show confirmation dialog
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Confirm Order'),
+                          content: const Text('Are you sure you want to place this order?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context); // Close dialog
+                              },
+                              child: const Text('Cancel'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () async {
+                                Navigator.pop(context); // Close confirm dialog
+
+                                await updateStockAfterOrder();
+
+                                if (!mounted) return; // Prevents calling context if widget is disposed
+
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Order Successful'),
+                                    content: const Text('Your order has been placed successfully!'),
+                                    actions: [
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.pop(context); // Close success dialog
+                                          Navigator.pop(context); // Go back to previous page
+                                          CartManager().clear(); // Clear the cart after order
+                                          setState(() {}); // Refresh the page if needed
+                                        },
+                                        child: const Text('OK'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.pinkAccent,
+                              ),
+                              child: const Text('Confirm'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.pinkAccent,
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text(
+                      'Place Order',
+                      style: TextStyle(fontSize: 18, color: Colors.white),
+                    ),
                   ),
                 ),
-                child: const Text(
-                  'Place Order',
-                  style: TextStyle(fontSize: 18, color: Colors.white),
-                ),
-              ),
-            ),
           ],
         ),
       ),

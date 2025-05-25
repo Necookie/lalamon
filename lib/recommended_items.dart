@@ -10,55 +10,39 @@ class RecommendedItems extends StatefulWidget {
 }
 
 class _RecommendedItemsState extends State<RecommendedItems> {
-  late Future<List<Map<String, dynamic>>> _futureRecommended;
-
-  @override
-  void initState() {
-    super.initState();
-    _futureRecommended = fetchRecommendedItems();
-  }
-
-  Future<List<Map<String, dynamic>>> fetchRecommendedItems() async {
-    final snapshot = await FirebaseFirestore.instance
-        .collection('products')
-        .where('stock', isGreaterThan: 0) // Only products with stock > 0
-        .orderBy('stock', descending: true)
-        .limit(5)
-        .get();
-
-    return snapshot.docs.map((doc) => doc.data()).toList();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Map<String, dynamic>>>(
-      future: _futureRecommended,
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('products')
+          .where('stock', isGreaterThan: 0)
+          .orderBy('stock', descending: true)
+          .limit(5)
+          .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return const Center(child: Text('No recommended items found.'));
         }
 
-        final items = snapshot.data!;
-        final availableItems = items.where((item) => item['stock'] > 0).toList();
+        final items = snapshot.data!.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
 
         return SizedBox(
           height: 250,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            itemCount: availableItems.length,
+            itemCount: items.length,
             itemBuilder: (context, index) {
-              final item = availableItems[index];
-
+              final item = items[index];
               return GestureDetector(
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => ProductDetails(
-                        productName: item['name'], // Use 'name' field
+                        productName: item['name'],
                       ),
                     ),
                   );
