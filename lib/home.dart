@@ -28,22 +28,17 @@ class _HomeState extends State<Home> {
       'price': '₱150'
     },
     {
-      'title': 'Burger',
+      'title': 'Burgers',
       'imageUrl': 'lib/Assets/images/burger.jpeg',
       'price': '₱80'
     },
     {
-      'title': 'Chicken',
+      'title': 'Meals',
       'imageUrl': 'lib/Assets/images/Fried_Chicken.jpg',
       'price': '₱180'
     },
     {
-      'title': 'Spaghetti',
-      'imageUrl': 'lib/Assets/images/Spaghetti.jpg',
-      'price': '₱150'
-    },
-    {
-      'title': 'Drinks',
+      'title': 'Beverages',
       'imageUrl': 'lib/Assets/images/General_Softdrinks.jpg',
       'price': '₱25'
     },
@@ -374,153 +369,174 @@ class _HomeState extends State<Home> {
                     .doc(FirebaseAuth.instance.currentUser?.uid)
                     .snapshots(),
                 builder: (context, snapshot) {
-                  String userName =
-                      'Guest'; // Default name if no data is available
+                  String userName = 'Guest';
 
                   if (snapshot.hasData && snapshot.data!.exists) {
                     final data = snapshot.data!.data() as Map<String, dynamic>;
-                    userName = data['name'] ?? 'Guest'; // Fetch the user's name
+                    userName = data['name'] ?? 'Guest';
                   }
 
-                  return RichText(
-                    text: TextSpan(
-                      children: [
-                        const TextSpan(
-                          text: 'Welcome to ',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
+                  return Text(
+                    'Welcome, $userName',
+                    style: const TextStyle(
+                        fontSize: 24, fontWeight: FontWeight.bold),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text(
+                'Categories',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(height: 10),
+            // Categories horizontal list
+            SizedBox(
+              height: 130,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: filteredCategories.length,
+                itemBuilder: (context, index) {
+                  final category = filteredCategories[index];
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CategoryDetailsPage(
+                            categoryTitle: category['title']!,
                           ),
                         ),
-                        TextSpan(
-                          text: 'Lalamon, ',
+                      );
+                    },
+                    child: Container(
+                      width: 110,
+                      margin: const EdgeInsets.only(left: 8, right: 8),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.pinkAccent.shade100,
+                        image: DecorationImage(
+                          image: AssetImage(category['imageUrl']!),
+                          fit: BoxFit.cover,
+                          colorFilter: ColorFilter.mode(
+                              Colors.black.withOpacity(0.3), BlendMode.darken),
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          category['title']!,
                           style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white),
                         ),
-                        TextSpan(
-                          text: '$userName!',
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.pinkAccent,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   );
                 },
               ),
             ),
             const SizedBox(height: 20),
-
-            // Recommended Items Section
-            RecommendedItems(recommendedItems: recommendedItems),
-
-            const SizedBox(height: 30),
-
-            // Categories
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Categories',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Popular Items',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                  const Spacer(),
+                  // See All button for categories
                   TextButton(
                     onPressed: () {
                       Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  AllCategoriesPage(categories: categories)));
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AllCategoriesPage(
+                            categories: categories,
+                          ),
+                        ),
+                      );
                     },
-                    child: const Text('See All',
-                        style: TextStyle(color: Colors.pinkAccent)),
+                    child: const Text('See All'),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 10),
-
             SizedBox(
-              height: 120,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: filteredCategories.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 16),
-                itemBuilder: (context, index) {
-                  final category = filteredCategories[index];
-                  return CategoryCard(
-                    title: category['title']!,
-                    imageUrl: category['imageUrl']!,
-                    price: category['price']!,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CategoryDetailsPage(
-                              categoryTitle: category['title']!),
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 30),
-
-            // Popular
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8.0),
-              child: Text('Popular Items',
-                  style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.pink)),
-            ),
-            const SizedBox(height: 10),
-
-            SizedBox(
-              height: 200,
+              height: 220,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: popularItems.length,
                 itemBuilder: (context, index) {
                   final item = popularItems[index];
-                  return Container(
-                    width: 150,
-                    margin: const EdgeInsets.only(right: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Use Image.asset for local images
-                        Image.asset(
-                          item['imageUrl']!, // Path to the local image
-                          height: 100,
-                          width: 100,
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProductDetails(
+                            productName: item['title']!,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      width: 180,
+                      margin: const EdgeInsets.symmetric(horizontal: 8.0),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.shade400,
+                            blurRadius: 6,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                        image: DecorationImage(
+                          image: AssetImage(item['imageUrl']!),
                           fit: BoxFit.cover,
                         ),
-                        const SizedBox(height: 10),
-                        Text(
-                          item['title']!,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      alignment: Alignment.bottomCenter,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.5),
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(12),
+                            bottomRight: Radius.circular(12),
+                          ),
                         ),
-                      ],
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          item['title']!,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ),
                   );
                 },
               ),
             ),
+            const SizedBox(height: 20),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text(
+                'Recommended for You',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(height: 10),
+            const RecommendedItems(),
             const SizedBox(height: 30),
           ],
         ),
@@ -534,7 +550,7 @@ class _HomeState extends State<Home> {
     required VoidCallback onTap,
   }) {
     return ListTile(
-      leading: Icon(icon, color: Colors.pink),
+      leading: Icon(icon, color: Colors.pinkAccent),
       title: Text(text),
       onTap: onTap,
     );

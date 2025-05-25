@@ -22,21 +22,19 @@ class CategoryCard extends StatelessWidget {
       case 'pizza':
         emoji = '🍕';
         break;
-      case 'burger':
+      case 'burgers':
         emoji = '🍔';
         break;
-      case 'chicken':
-        emoji = '🍗';
-        break;
-      case 'spaghetti':
-        emoji = '🍝';
-        break;
-      case 'drinks':
+      case 'beverages':
         emoji = '🥤';
         break;
-      default:
+      case 'meals':
         emoji = '🍽️';
+        break;
+      default:
+        emoji = '❓';
     }
+
 
     return GestureDetector(
       onTap: onTap,

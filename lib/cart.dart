@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lalamon/cart_manager.dart';
 import 'CheckOutPage.dart'; // Import the CheckOutPage
 
 class CartPage extends StatefulWidget {
@@ -9,35 +10,13 @@ class CartPage extends StatefulWidget {
 }
 
 class _CartPageState extends State<CartPage> {
-  // Mock data for cart items
-  final List<Map<String, dynamic>> cartItems = [
-    {
-      'name': 'Cheeseburger',
-      'price': 100,
-      'quantity': 1,
-      'imageUrl': 'lib/Assets/images/Cheese_Burger.jpg', // Path to the image
-    },
-    {
-      'name': 'Pepperoni Pizza',
-      'price': 200,
-      'quantity': 2,
-      'imageUrl': 'lib/Assets/images/pizza.jpeg', // Path to the image
-    },
-    {
-      'name': 'Veggie Burger',
-      'price': 80,
-      'quantity': 1,
-      'imageUrl': 'lib/Assets/images/burger.jpeg', // Path to the image
-    },
-  ];
-
   // Calculate total price
   double get totalPrice {
-    return cartItems.fold(0, (sum, item) => sum + (item['price'] * item['quantity']));
+    return CartManager().cartItems.fold(0, (sum, item) => sum + (item['price'] * item['quantity']));
   }
 
   void _editItem(int index) {
-    final item = cartItems[index];
+    final item = CartManager().cartItems[index];
     final TextEditingController nameController = TextEditingController(text: item['name']);
     final TextEditingController priceController = TextEditingController(text: item['price'].toString());
 
@@ -70,13 +49,13 @@ class _CartPageState extends State<CartPage> {
             ElevatedButton(
               onPressed: () {
                 setState(() {
-                  cartItems[index]['name'] = nameController.text;
-                  cartItems[index]['price'] = double.tryParse(priceController.text) ?? item['price'];
+                  CartManager().cartItems[index]['name'] = nameController.text;
+                  CartManager().cartItems[index]['price'] = double.tryParse(priceController.text) ?? item['price'];
                 });
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.pinkAccent, // Set button color to black
+                backgroundColor: Colors.pinkAccent,
               ),
               child: const Text('Save'),
             ),
@@ -107,9 +86,9 @@ class _CartPageState extends State<CartPage> {
             // Cart Items List
             Expanded(
               child: ListView.builder(
-                itemCount: cartItems.length,
+                itemCount: CartManager().cartItems.length,
                 itemBuilder: (context, index) {
-                  final item = cartItems[index];
+                  final item = CartManager().cartItems[index];
                   return Card(
                     margin: const EdgeInsets.symmetric(vertical: 8.0),
                     child: ListTile(
@@ -170,7 +149,7 @@ class _CartPageState extends State<CartPage> {
                             icon: const Icon(Icons.delete, color: Colors.black), // Set icon color to black
                             onPressed: () {
                               setState(() {
-                                cartItems.removeAt(index);
+                                CartManager().removeItem(index);
                               });
                             },
                           ),
