@@ -21,8 +21,9 @@ class _RecommendedItemsState extends State<RecommendedItems> {
   Future<List<Map<String, dynamic>>> fetchRecommendedItems() async {
     final snapshot = await FirebaseFirestore.instance
         .collection('products')
-        .orderBy('stock', descending: true) // Highest stock first
-        .limit(5) // Only 5 items
+        .where('stock', isGreaterThan: 0) // Only products with stock > 0
+        .orderBy('stock', descending: true)
+        .limit(5)
         .get();
 
     return snapshot.docs.map((doc) => doc.data()).toList();
@@ -41,14 +42,15 @@ class _RecommendedItemsState extends State<RecommendedItems> {
         }
 
         final items = snapshot.data!;
+        final availableItems = items.where((item) => item['stock'] > 0).toList();
 
         return SizedBox(
           height: 250,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            itemCount: items.length,
+            itemCount: availableItems.length,
             itemBuilder: (context, index) {
-              final item = items[index];
+              final item = availableItems[index];
 
               return GestureDetector(
                 onTap: () {
