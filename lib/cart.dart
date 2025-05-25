@@ -94,12 +94,19 @@ class _CartPageState extends State<CartPage> {
                     child: ListTile(
                       leading: ClipRRect(
                         borderRadius: BorderRadius.circular(8.0),
-                        child: Image.asset(
-                          item['imageUrl'], // Display the image
-                          height: 50,
-                          width: 50,
-                          fit: BoxFit.cover,
-                        ),
+                        child: (item['imageUrl'] != null && (item['imageUrl'].toString().startsWith('http') || item['imageUrl'].toString().startsWith('https')))
+                            ? Image.network(
+                                item['imageUrl'],
+                                height: 50,
+                                width: 50,
+                                fit: BoxFit.cover,
+                              )
+                            : Image.asset(
+                                item['imageUrl'] ?? '',
+                                height: 50,
+                                width: 50,
+                                fit: BoxFit.cover,
+                              ),
                       ),
                       title: Text(item['name']),
                       subtitle: Row(
