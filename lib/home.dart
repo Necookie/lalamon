@@ -384,10 +384,31 @@ class _HomeState extends State<Home> {
                     userName = data['name'] ?? 'Guest';
                   }
 
-                  return Text(
-                    'Welcome, $userName',
-                    style: const TextStyle(
-                        fontSize: 24, fontWeight: FontWeight.bold),
+                  return RichText(
+                    text: TextSpan(
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black, // fallback color
+                      ),
+                      children: [
+                        const TextSpan(text: 'Welcome to '),
+                        TextSpan(
+                          text: 'lalamon ',
+                          style: TextStyle(
+                            color: Colors.pinkAccent.shade700,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        TextSpan(
+                          text: userName,
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
                   );
                 },
               ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lalamon/forgpassverify_page.dart';
+import 'package:lalamon/login_page.dart';
+import 'forgpassverify_page.dart'; // <-- Import the backend
 
 class ForgotPassPage extends StatefulWidget {
   const ForgotPassPage({super.key});
@@ -9,9 +10,43 @@ class ForgotPassPage extends StatefulWidget {
 }
 
 class _ForgotPassPageState extends State<ForgotPassPage> {
+  final TextEditingController _emailController =
+      TextEditingController(); // <-- Add controller
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _sendPasswordResetEmail() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your email.')),
+      );
+      return;
+    }
+    final error = await sendPasswordResetEmailBackend(email); // <-- Use backend
+    if (error == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password reset email sent!')),
+      );
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+        (route) => false,
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $error')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width; // To keep the layout intact on different devices
+    double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: AppBar(
@@ -32,8 +67,8 @@ class _ForgotPassPageState extends State<ForgotPassPage> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Colors.pinkAccent.shade200, // Lighter shade on top
-              Colors.pinkAccent.shade700, // Darker shade on bottom
+              Colors.pinkAccent.shade200,
+              Colors.pinkAccent.shade700,
             ],
           ),
         ),
@@ -81,6 +116,8 @@ class _ForgotPassPageState extends State<ForgotPassPage> {
                           Padding(
                             padding: const EdgeInsets.only(bottom: 20),
                             child: TextField(
+                              controller:
+                                  _emailController, // <-- Use controller
                               decoration: InputDecoration(
                                 border: OutlineInputBorder(
                                   borderSide: BorderSide.none,
@@ -90,15 +127,14 @@ class _ForgotPassPageState extends State<ForgotPassPage> {
                                   color: Colors.grey,
                                 ),
                                 filled: true,
-                                fillColor: const Color.fromARGB(255, 222, 232, 237),
+                                fillColor:
+                                    const Color.fromARGB(255, 222, 232, 237),
                               ),
                             ),
                           ),
                           FilledButton(
-                            onPressed: () {
-                              // Implement your forgot password logic here
-                              Navigator.push(context,MaterialPageRoute(builder: (context) => ForgPassVerifyPage()),);
-                            },
+                            onPressed:
+                                _sendPasswordResetEmail, // <-- Use backend logic
                             style: FilledButton.styleFrom(
                               elevation: 5,
                               backgroundColor: Colors.pinkAccent,
