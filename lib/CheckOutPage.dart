@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:lalamon/cart_manager.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_paypal/flutter_paypal.dart';
-import 'package:flutter/foundation.dart'; // For kIsWeb
-import 'dart:html' as html; // For web redirect
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
+// ignore: avoid_web_libraries_in_flutter
+
 
 class CheckOutPage extends StatefulWidget {
   const CheckOutPage({super.key});
@@ -208,37 +209,12 @@ class _CheckOutPageState extends State<CheckOutPage> {
                   child: ElevatedButton(
                     onPressed: () async {
                       if (kIsWeb) {
-                        // TEMP FIX: Save order BEFORE redirecting to PayPal
-                        await saveOrderToFirestore(
-                          paymentMethod: 'PayPal',
-                          totalAmount: totalPrice,
-                        );
-                        await updateStockAfterOrder();
-                        CartManager().clear();
-
-                        // Build PayPal sandbox URL for web
-                        final total = totalPrice.toStringAsFixed(2);
-                        final business = "sb-w1qht34783757@business.example.com";
-                        final itemName = cartItems.map((item) => item['name']).join(', ');
-                        final returnUrl = Uri.encodeComponent("https://samplesite.com/return");
-                        final cancelUrl = Uri.encodeComponent("https://samplesite.com/cancel");
-
-                        final url =
-                            "https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_xclick"
-                            "&business=$business"
-                            "&item_name=$itemName"
-                            "&amount=$total"
-                            "&currency_code=USD"
-                            "&return=$returnUrl"
-                            "&cancel_return=$cancelUrl";
-
-                        html.window.open(url, "_blank");
-
-                        // Optionally show a dialog or snackbar
+                        // Web: Show a message or handle PayPal with a web-only solution.
+                        // You CANNOT use html.window.open here unless you import dart:html, which breaks mobile.
+                        // So, for emulator/mobile, just show a message:
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Order placed! Complete payment in the new PayPal tab.'))
+                          const SnackBar(content: Text('PayPal payment is only available on web.')),
                         );
-                        setState(() {});
                       } else {
                         // Mobile: Use UsePaypal widget as before
                         Navigator.of(context).push(
